@@ -2,7 +2,7 @@ package services
 
 import (
 	"golang-shop-restful/internal/models"
-	"time"
+	"golang-shop-restful/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -26,9 +26,6 @@ func (s *Services) GetProducts(limit, offset int) ([]models.Product, error) {
 }
 
 func (s *Services) CreateProduct(product *models.Product) error {
-	product.CreatedAt = time.Now()
-	product.UpdatedAt = time.Now()
-
 	if err := s.db.Create(product).Error; err != nil {
 		return err
 	}
@@ -52,9 +49,13 @@ func (s *Services) UpdateProduct(id int, updateProduct *models.Product) error {
 		return err
 	}
 
-	existingProduct.Title = updateProduct.Title
-	existingProduct.Price = updateProduct.Price
-	existingProduct.UpdatedAt = time.Now()
+	existingProduct = models.Product{
+		Title:       updateProduct.Title,
+		Description: updateProduct.Description,
+		Price:       updateProduct.Price,
+		Category:    existingProduct.Category,
+		Stock:       existingProduct.Stock,
+	}
 
 	if err := s.db.Save(&existingProduct).Error; err != nil {
 		return err
@@ -63,19 +64,6 @@ func (s *Services) UpdateProduct(id int, updateProduct *models.Product) error {
 	return nil
 }
 
-func (s *Services) DeleteProduct(id int) error {
-	var existingProduct models.Product
-	if err := s.db.First(&existingProduct, id).Error; err != nil {
-		return err
-	}
-	if err := s.db.Delete(&existingProduct).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// User methods
 func (s *Services) CreateUser(user *models.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -90,16 +78,16 @@ func (s *Services) CreateUser(user *models.User) error {
 	return nil
 }
 
-func (s *Services) GetUserByUsername(username string) (models.User, error) {
+func (s *Services) getUserByUsername(username string) (models.User, error) {
 	var user models.User
-	if err := s.db.Where("username = ?", username).First(&user).Error; err != nil {
+	if err := s.db.Preload("Cart").Preload("CartItem").Where("username = ?", username).First(&user).Error; err != nil {
 		return models.User{}, err
 	}
 	return user, nil
 }
 
 func (s *Services) AuthenticateUser(username, password string) (models.User, error) {
-	user, err := s.GetUserByUsername(username)
+	user, err := s.getUserByUsername(username)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -108,5 +96,74 @@ func (s *Services) AuthenticateUser(username, password string) (models.User, err
 		return models.User{}, err
 	}
 
+	if err := s.CreateCart(&user); err != nil {
+		return models.User{}, err
+	}
+
+	utils.Logger.Debug(user)
 	return user, nil
+}
+
+func (s *Services) CreateCart(user *models.User) error {
+	if user.Cart.UserID != user.ID {
+		return nil
+	}
+	user.Cart = models.Cart{UserID: user.ID}
+	if err := s.db.Save(&user).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Services) GetCart(user_id int) (models.Cart, error) {
+	var cart models.Cart
+	if err := s.db.Preload("Items").Where("user_id = ?", user_id).First(&cart).Error; err != nil {
+		return models.Cart{}, err
+	}
+
+	return cart, nil
+}
+
+func (s *Services) AddToCart(user_id, productID int) error {
+	var user models.User
+	if err := s.db.Preload("Cart").First(&user, user_id).Error; err != nil {
+		return err
+	}
+
+	cart := user.Cart
+	if cart.ID == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	var product models.Product
+	if err := s.db.First(&product, productID).Error; err != nil {
+		return err
+	}
+
+	if product.Stock <= 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	var existingCartItem models.CartItem
+	if err := s.db.Where("cart_id = ? AND product_id = ?", cart.ID, productID).First(&existingCartItem).Error; err == nil {
+		existingCartItem.Quantity += 1
+		existingCartItem.Price = product.Price * float64(existingCartItem.Quantity)
+		if err := s.db.Save(&existingCartItem).Error; err != nil {
+			return err
+		}
+	} else {
+		newCartItem := models.CartItem{
+			CartID:    cart.ID,
+			ProductID: uint(productID),
+			Quantity:  1,
+			Price:     product.Price,
+		}
+		if err := s.db.Create(&newCartItem).Error; err != nil {
+			return err
+		}
+	}
+	product.Stock -= 1
+
+	return nil
 }

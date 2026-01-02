@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -19,18 +20,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid authorization header format",
-			})
-			c.Abort()
-			return
-		}
-
-		tokenString := parts[1]
-		claims, err := utils.ValidateJWT(tokenString)
-		if err != nil {
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		token, err := utils.ValidateJWT(tokenString)
+		if err != nil || !token.Valid {
+			utils.Logger.Debug(token)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid token",
 			})
@@ -38,7 +31,8 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("username", claims.Username)
+		claims := token.Claims.(jwt.MapClaims)
+		c.Set("user_id", claims["user_id"])
 		c.Next()
 	}
 }

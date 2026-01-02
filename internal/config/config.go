@@ -7,14 +7,15 @@ import (
 )
 
 type Config struct {
-	ServerHost string
-	ServerPort uint
-	DBHost     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBPort     uint
-	JWTSecret  string
+	ServerHost   string
+	ServerPort   uint
+	DBHost       string
+	DBUser       string
+	DBPassword   string
+	DBName       string
+	DBPort       uint
+	JWTSecret    string
+	AllowOrigins []string
 }
 
 func LoadConfig() (Config, error) {
@@ -31,14 +32,15 @@ func LoadConfig() (Config, error) {
 	}
 
 	config := Config{
-		ServerHost: v.GetString("server.host"),
-		ServerPort: v.GetUint("server.port"),
-		DBHost:     v.GetString("database.host"),
-		DBUser:     v.GetString("database.user"),
-		DBPassword: v.GetString("database.password"),
-		DBName:     v.GetString("database.name"),
-		DBPort:     v.GetUint("database.port"),
-		JWTSecret:  v.GetString("jwt.secret"),
+		ServerHost:   v.GetString("server.host"),
+		ServerPort:   v.GetUint("server.port"),
+		DBHost:       v.GetString("database.host"),
+		DBUser:       v.GetString("database.user"),
+		DBPassword:   v.GetString("database.password"),
+		DBName:       v.GetString("database.name"),
+		DBPort:       v.GetUint("database.port"),
+		JWTSecret:    v.GetString("jwt.secret"),
+		AllowOrigins: v.GetStringSlice("cors.allow_origins"),
 	}
 
 	return config, nil

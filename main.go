@@ -10,7 +10,6 @@ import (
 	"golang-shop-restful/internal/utils"
 	"log"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,13 +30,15 @@ func main() {
 	if err != nil {
 		utils.Logger.Fatal(err.Error())
 	}
-	db.AutoMigrate(&models.Product{}, &models.User{})
+	if err := db.AutoMigrate(&models.Product{}, &models.User{}, &models.Cart{}, &models.CartItem{}); err != nil {
+		utils.Logger.Fatal(err.Error())
+	}
 
 	service := services.NewServices(db)
 	handler := handlers.NewHandler(service)
 
 	r := gin.Default()
-	r.Use(cors.Default())
+	r.Use(middleware.CORSMiddleware(cfg))
 
 	auth := r.Group("/api/auth")
 	auth.POST("/register", handler.Register)
@@ -49,7 +50,11 @@ func main() {
 	api.POST("/", handler.PostProduct)
 	api.GET("/:id", handler.GetProductById)
 	api.PUT("/:id", handler.PutProduct)
-	api.DELETE("/:id", handler.DeleteProduct)
+
+	cart := r.Group("/api/cart")
+	cart.Use(middleware.AuthMiddleware())
+	cart.GET("/", handler.GetCart)
+	cart.POST("/add/:id", handler.AddToCart)
 
 	utils.Logger.Fatal(r.Run(config.GetServerAddress(cfg)))
 }
