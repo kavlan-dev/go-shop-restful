@@ -80,7 +80,7 @@ func (s *Services) CreateUser(user *models.User) error {
 
 func (s *Services) getUserByUsername(username string) (models.User, error) {
 	var user models.User
-	if err := s.db.Preload("Cart").Preload("CartItem").Where("username = ?", username).First(&user).Error; err != nil {
+	if err := s.db.Where("username = ?", username).First(&user).Error; err != nil {
 		return models.User{}, err
 	}
 	return user, nil
@@ -105,12 +105,11 @@ func (s *Services) AuthenticateUser(username, password string) (models.User, err
 }
 
 func (s *Services) CreateCart(user *models.User) error {
-	if user.Cart.UserID != user.ID {
-		return nil
-	}
-	user.Cart = models.Cart{UserID: user.ID}
-	if err := s.db.Save(&user).Error; err != nil {
-		return err
+	if user.Cart.UserID == 0 {
+		user.Cart = models.Cart{UserID: user.ID}
+		if err := s.db.Save(&user).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil
