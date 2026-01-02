@@ -8,23 +8,28 @@ import (
 	"golang-shop-restful/internal/models"
 	"golang-shop-restful/internal/services"
 	"golang-shop-restful/internal/utils"
+	"log"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	config.LoggerInit()
-	defer config.Logger.Sync()
+	if err := utils.InitLogger(); err != nil {
+		log.Fatal(err.Error())
+	}
+	defer utils.Logger.Sync()
 
-	cfg := config.LoadConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		utils.Logger.Fatal(err.Error())
+	}
 
-	// Initialize JWT with secret from config
 	utils.InitJWT(cfg.JWTSecret)
 
 	db, err := database.ConnectDB(cfg)
 	if err != nil {
-		config.Logger.Fatal(err.Error())
+		utils.Logger.Fatal(err.Error())
 	}
 	db.AutoMigrate(&models.Product{}, &models.User{})
 
@@ -46,5 +51,5 @@ func main() {
 	api.PUT("/:id", handler.PutProduct)
 	api.DELETE("/:id", handler.DeleteProduct)
 
-	config.Logger.Fatal(r.Run())
+	utils.Logger.Fatal(r.Run(config.GetServerAddress(cfg)))
 }
