@@ -8,6 +8,7 @@ import (
 func CORSMiddleware(allowOrigins []string) gin.HandlerFunc {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = allowOrigins
+	config.AllowCredentials = true
 	config.AddAllowHeaders("Authorization")
 	return cors.New(config)
 }
