@@ -6,9 +6,9 @@ import (
 
 type ProductService interface {
 	GetProducts(limit, offset int) ([]models.Product, error)
-	CreateProduct(product *models.ProductCreateRequest) error
+	CreateProduct(product *models.Product) error
 	GetProductById(id int) (models.Product, error)
-	UpdateProduct(id int, updateProduct *models.ProductUpdateRequest) error
+	UpdateProduct(id int, updateProduct *models.Product) error
 	DeleteProduct(id int) error
 }
 
@@ -21,7 +21,7 @@ func (s *Services) GetProducts(limit, offset int) ([]models.Product, error) {
 	return products, nil
 }
 
-func (s *Services) CreateProduct(product *models.ProductCreateRequest) error {
+func (s *Services) CreateProduct(product *models.Product) error {
 	if err := s.db.Create(product).Error; err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (s *Services) GetProductById(id int) (models.Product, error) {
 	return product, nil
 }
 
-func (s *Services) UpdateProduct(id int, updateProduct *models.ProductUpdateRequest) error {
+func (s *Services) UpdateProduct(id int, updateProduct *models.Product) error {
 	existingProduct, err := s.GetProductById(id)
 	if err != nil {
 		return err

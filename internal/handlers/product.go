@@ -58,12 +58,20 @@ func (h *Handler) GetProducts(c *gin.Context) {
 }
 
 func (h *Handler) PostProduct(c *gin.Context) {
-	var newProduct models.ProductCreateRequest
-	if err := c.BindJSON(&newProduct); err != nil {
+	var req models.ProductCreateRequest
+	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid product data",
 		})
 		return
+	}
+
+	newProduct := models.Product{
+		Title:       req.Title,
+		Description: req.Description,
+		Price:       req.Price,
+		Category:    req.Category,
+		Stock:       req.Stock,
 	}
 
 	if err := h.service.CreateProduct(&newProduct); err != nil {
@@ -115,12 +123,19 @@ func (h *Handler) PutProduct(c *gin.Context) {
 		return
 	}
 
-	var updateProduct models.ProductUpdateRequest
-	if err := c.BindJSON(&updateProduct); err != nil {
+	var req models.ProductUpdateRequest
+	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid product data",
 		})
 		return
+	}
+
+	updateProduct := models.Product{
+		Category:    req.Category,
+		Description: req.Description,
+		Price:       req.Price,
+		Stock:       req.Stock,
 	}
 
 	if err := h.service.UpdateProduct(id, &updateProduct); err != nil {
