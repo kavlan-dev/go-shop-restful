@@ -15,7 +15,7 @@ type UserHandler interface {
 
 func (h *Handler) Register(c *gin.Context) {
 	var req models.RegisterRequest
-	if err := c.BindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request data",
 		})
@@ -49,7 +49,7 @@ func (h *Handler) Register(c *gin.Context) {
 
 func (h *Handler) Login(c *gin.Context) {
 	var req models.AuthRequest
-	if err := c.BindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request data",
 		})
