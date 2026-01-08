@@ -4,14 +4,6 @@ import (
 	"golang-shop-restful/internal/models"
 )
 
-type ProductService interface {
-	GetProducts(limit, offset int) ([]models.Product, error)
-	CreateProduct(product *models.Product) error
-	GetProductById(id int) (models.Product, error)
-	UpdateProduct(id int, updateProduct *models.Product) error
-	DeleteProduct(id int) error
-}
-
 func (s *Services) GetProducts(limit, offset int) ([]models.Product, error) {
 	var products []models.Product
 	if err := s.db.Limit(limit).Offset(offset).Find(&products).Error; err != nil {

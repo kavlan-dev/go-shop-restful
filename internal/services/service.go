@@ -4,12 +4,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type ServicesInterface interface {
-	ProductService
-	UserService
-	CartService
-}
-
 type Services struct {
 	db *gorm.DB
 }

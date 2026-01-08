@@ -39,6 +39,7 @@ func main() {
 
 	r := gin.Default()
 	r.Use(middleware.CORSMiddleware(cfg.AllowOrigins))
+	r.Use(gin.ErrorLogger())
 
 	auth := r.Group("/api/auth")
 	auth.POST("/register", handler.Register)

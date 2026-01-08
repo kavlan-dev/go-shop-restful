@@ -6,13 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type CartService interface {
-	CreateCart(user *models.User) error
-	GetCart(user_id int) (models.Cart, error)
-	AddToCart(user_id, productID int) error
-	ClearCart(user_id int) error
-}
-
 func (s *Services) CreateCart(user *models.User) error {
 	if user.Cart.UserID == 0 {
 		user.Cart = models.Cart{UserID: user.ID}

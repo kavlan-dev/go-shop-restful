@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"golang-shop-restful/internal/models"
 	"net/http"
 	"strconv"
 
@@ -8,10 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type CartHandler interface {
-	GetCart(c *gin.Context)
-	AddToCart(c *gin.Context)
-	ClearCart(c *gin.Context)
+type CartService interface {
+	CreateCart(user *models.User) error
+	GetCart(user_id int) (models.Cart, error)
+	AddToCart(user_id, productID int) error
+	ClearCart(user_id int) error
 }
 
 func (h *Handler) GetCart(c *gin.Context) {
@@ -25,9 +27,8 @@ func (h *Handler) GetCart(c *gin.Context) {
 
 	cart, err := h.service.GetCart(int(userId.(float64)))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get cart",
-		})
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, cart)
@@ -36,9 +37,7 @@ func (h *Handler) GetCart(c *gin.Context) {
 func (h *Handler) AddToCart(c *gin.Context) {
 	productId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid product ID",
-		})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -52,13 +51,9 @@ func (h *Handler) AddToCart(c *gin.Context) {
 
 	if err := h.service.AddToCart(int(userId.(float64)), productId); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Product not found or insufficient stock",
-			})
+			c.AbortWithError(http.StatusBadRequest, err)
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to add product to cart",
-			})
+			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -78,9 +73,8 @@ func (h *Handler) ClearCart(c *gin.Context) {
 	}
 
 	if err := h.service.ClearCart(int(userId.(float64))); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to clear cart",
-		})
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
 	c.JSON(http.StatusNoContent, gin.H{})

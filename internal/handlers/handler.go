@@ -1,17 +1,15 @@
 package handlers
 
-import "golang-shop-restful/internal/services"
-
-type HandlersInterface interface {
-	ProductHandler
-	UserHandler
-	CartHandler
+type ServicesInterface interface {
+	ProductService
+	UserService
+	CartService
 }
 
 type Handler struct {
-	service services.ServicesInterface
+	service ServicesInterface
 }
 
-func NewHandler(service services.ServicesInterface) *Handler {
+func NewHandler(service ServicesInterface) *Handler {
 	return &Handler{service: service}
 }

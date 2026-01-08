@@ -9,12 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProductHandler interface {
-	GetProducts(c *gin.Context)
-	PostProduct(c *gin.Context)
-	GetProductById(c *gin.Context)
-	PutProduct(c *gin.Context)
-	DeleteProduct(c *gin.Context)
+type ProductService interface {
+	GetProducts(limit, offset int) ([]models.Product, error)
+	CreateProduct(product *models.Product) error
+	GetProductById(id int) (models.Product, error)
+	UpdateProduct(id int, updateProduct *models.Product) error
+	DeleteProduct(id int) error
 }
 
 func (h *Handler) GetProducts(c *gin.Context) {
@@ -27,9 +27,7 @@ func (h *Handler) GetProducts(c *gin.Context) {
 	if limitStr != "" {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid limit parameter",
-			})
+			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 		if limit > 1000 {
@@ -39,18 +37,14 @@ func (h *Handler) GetProducts(c *gin.Context) {
 	if offsetStr != "" {
 		offset, err = strconv.Atoi(offsetStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid offset parameter",
-			})
+			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 	}
 
 	products, err := h.service.GetProducts(limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to retrieve products",
-		})
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -60,9 +54,7 @@ func (h *Handler) GetProducts(c *gin.Context) {
 func (h *Handler) PostProduct(c *gin.Context) {
 	var req models.ProductCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid product data",
-		})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -75,9 +67,7 @@ func (h *Handler) PostProduct(c *gin.Context) {
 	}
 
 	if err := h.service.CreateProduct(&newProduct); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create product",
-		})
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -87,22 +77,16 @@ func (h *Handler) PostProduct(c *gin.Context) {
 func (h *Handler) GetProductById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid product ID",
-		})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	product, err := h.service.GetProductById(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Product not found",
-			})
+			c.AbortWithError(http.StatusNotFound, err)
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to retrieve product",
-			})
+			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -113,17 +97,13 @@ func (h *Handler) GetProductById(c *gin.Context) {
 func (h *Handler) PutProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid product ID",
-		})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	var req models.ProductUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid product data",
-		})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -136,13 +116,9 @@ func (h *Handler) PutProduct(c *gin.Context) {
 
 	if err := h.service.UpdateProduct(id, &updateProduct); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Product not found",
-			})
+			c.AbortWithError(http.StatusNotFound, err)
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to update product",
-			})
+			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -155,21 +131,15 @@ func (h *Handler) PutProduct(c *gin.Context) {
 func (h *Handler) DeleteProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid product ID",
-		})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if err := h.service.DeleteProduct(id); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Product not found",
-			})
+			c.AbortWithError(http.StatusNotFound, err)
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to update product",
-			})
+			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 		return
 	}

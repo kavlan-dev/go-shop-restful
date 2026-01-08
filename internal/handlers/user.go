@@ -8,17 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserHandler interface {
-	Register(c *gin.Context)
-	Login(c *gin.Context)
+type UserService interface {
+	CreateUser(user *models.User) error
+	AuthenticateUser(username, password string) (models.User, error)
 }
 
 func (h *Handler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request data",
-		})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -29,16 +27,12 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	if err := h.service.CreateUser(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create user",
-		})
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := h.service.CreateCart(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create user cart",
-		})
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -50,25 +44,19 @@ func (h *Handler) Register(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var req models.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request data",
-		})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	user, err := h.service.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid credentials",
-		})
+		c.AbortWithError(http.StatusUnauthorized, err)
 		return
 	}
 
 	token, err := utils.GenerateJWT(user.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to generate token",
-		})
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

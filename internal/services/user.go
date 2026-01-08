@@ -6,11 +6,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserService interface {
-	CreateUser(user *models.User) error
-	AuthenticateUser(username, password string) (models.User, error)
-}
-
 func (s *Services) CreateUser(user *models.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
