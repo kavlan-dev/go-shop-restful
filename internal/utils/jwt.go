@@ -12,11 +12,12 @@ func InitJWT(secret string) {
 	jwtKey = []byte(secret)
 }
 
-func GenerateJWT(user_id uint) (string, error) {
+func GenerateJWT(user_id uint, role string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	claims := jwt.MapClaims{
 		"user_id": user_id,
+		"role":    role,
 		"exp":     jwt.NewNumericDate(expirationTime),
 	}
 

@@ -48,10 +48,14 @@ func main() {
 	product := r.Group("/api/products")
 	product.Use(middleware.AuthMiddleware())
 	product.GET("/", handler.GetProducts)
-	product.POST("/", handler.PostProduct)
 	product.GET("/:id", handler.GetProductById)
-	product.PUT("/:id", handler.PutProduct)
-	product.DELETE("/:id", handler.DeleteProduct)
+
+	adminProduct := r.Group("/api/products")
+	adminProduct.Use(middleware.AuthMiddleware())
+	adminProduct.Use(middleware.AdminMiddleware())
+	adminProduct.POST("/", handler.PostProduct)
+	adminProduct.PUT("/:id", handler.PutProduct)
+	adminProduct.DELETE("/:id", handler.DeleteProduct)
 
 	cart := r.Group("/api/cart")
 	cart.Use(middleware.AuthMiddleware())

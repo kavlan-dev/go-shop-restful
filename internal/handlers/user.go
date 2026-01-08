@@ -20,10 +20,16 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
+	role := req.Role
+	if role == "" {
+		role = "customer"
+	}
+
 	user := &models.User{
 		Username: req.Username,
 		Password: req.Password,
 		Email:    req.Email,
+		Role:     role,
 	}
 
 	if err := h.service.CreateUser(user); err != nil {
@@ -54,7 +60,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateJWT(user.ID)
+	token, err := utils.GenerateJWT(user.ID, user.Role)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
