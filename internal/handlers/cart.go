@@ -93,5 +93,5 @@ func (h *Handler) ClearCart(c *gin.Context) {
 	}
 
 	h.log.Debug("Корзина отчищена")
-	c.JSON(http.StatusNoContent, gin.H{})
+	c.JSON(http.StatusNoContent, nil)
 }

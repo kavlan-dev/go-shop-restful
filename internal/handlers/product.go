@@ -161,7 +161,7 @@ func (h *Handler) PutProduct(c *gin.Context) {
 		return
 	}
 
-	h.log.Debugf("Товар #%d с названием %s успешно изменен", id, updateProduct.Title)
+	h.log.Debugf("Товар #%d успешно изменен", id)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "продукт успешно изменен",
 	})
@@ -191,7 +191,5 @@ func (h *Handler) DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusNoContent, gin.H{
-		"message": "продукт успешно удален",
-	})
+	c.JSON(http.StatusNoContent, nil)
 }

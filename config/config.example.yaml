@@ -1,3 +1,6 @@
+# Environment: dev, prod
+env: dev 
+
 # Server Configuration
 server:
   host: localhost

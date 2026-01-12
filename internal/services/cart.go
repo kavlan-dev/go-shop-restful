@@ -42,7 +42,7 @@ func (s *Services) AddToCart(userId, productId int) error {
 		return gorm.ErrRecordNotFound
 	}
 
-	product, err := s.GetProductById(userId)
+	product, err := s.GetProductById(productId)
 	if err != nil {
 		return err
 	}

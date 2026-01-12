@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+	Environment   string
 	ServerHost    string
 	ServerPort    uint
 	DBHost        string
@@ -35,6 +36,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	config := Config{
+		Environment:   v.GetString("env"),
 		ServerHost:    v.GetString("server.host"),
 		ServerPort:    v.GetUint("server.port"),
 		DBHost:        v.GetString("database.host"),
