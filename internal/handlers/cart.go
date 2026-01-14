@@ -24,7 +24,15 @@ func (h *Handler) GetCart(c *gin.Context) {
 		return
 	}
 
-	cart, err := h.service.GetCart(int(userId.(float64)))
+	userIdFloat, ok := userId.(float64)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "внутренняя ошибка сервера",
+		})
+		return
+	}
+
+	cart, err := h.service.GetCart(int(userIdFloat))
 	if err != nil {
 		h.log.Error("Ошибка при выводе корзины:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -53,7 +61,15 @@ func (h *Handler) AddToCart(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.AddToCart(int(userId.(float64)), productId); err != nil {
+	userIdFloat, ok := userId.(float64)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "внутренняя ошибка сервера",
+		})
+		return
+	}
+
+	if err := h.service.AddToCart(int(userIdFloat), productId); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "товар не найден",
@@ -83,7 +99,15 @@ func (h *Handler) ClearCart(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.ClearCart(int(userId.(float64))); err != nil {
+	userIdFloat, ok := userId.(float64)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "внутренняя ошибка сервера",
+		})
+		return
+	}
+
+	if err := h.service.ClearCart(int(userIdFloat)); err != nil {
 		h.log.Error("Ошибка при отчистке корзины:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "не удалось отчистить корзину",

@@ -31,7 +31,14 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		c.Set("user_id", claims["user_id"])
+		userIdFloat, ok := claims["user_id"].(float64)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "невалидный токен"})
+			c.Abort()
+			return
+		}
+		userId := uint(userIdFloat)
+		c.Set("user_id", userId)
 		c.Set("user_role", claims["role"])
 		c.Next()
 	}

@@ -51,6 +51,14 @@ func LoadConfig() (*Config, error) {
 		AdminEmail:    v.GetString("admin.email"),
 	}
 
+	if config.JWTSecret == "" {
+		return nil, fmt.Errorf("JWT secret не может быть пустым")
+	}
+
+	if config.ServerPort == 0 {
+		config.ServerPort = 8080
+	}
+
 	return &config, nil
 }
 
