@@ -10,12 +10,12 @@ import (
 )
 
 type CartService interface {
-	GetCart(user_id int) (*models.Cart, error)
+	Cart(user_id int) (*models.Cart, error)
 	AddToCart(user_id, productID int) error
 	ClearCart(user_id int) error
 }
 
-func (h *Handler) GetCart(c *gin.Context) {
+func (h *Handler) Cart(c *gin.Context) {
 	userId, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -32,7 +32,7 @@ func (h *Handler) GetCart(c *gin.Context) {
 		return
 	}
 
-	cart, err := h.service.GetCart(int(userIdFloat))
+	cart, err := h.service.Cart(int(userIdFloat))
 	if err != nil {
 		h.log.Error("Ошибка при выводе корзины:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{

@@ -59,6 +59,10 @@ func LoadConfig() (*Config, error) {
 		config.ServerPort = 8080
 	}
 
+	if config.Environment != "dev" && config.Environment != "prod" {
+		return nil, fmt.Errorf("Окружение %s не найдено", config.Environment)
+	}
+
 	return &config, nil
 }
 

@@ -8,8 +8,8 @@ import (
 
 type CartStorage interface {
 	CreateCart(cart *models.Cart) error
-	GetCart(user_id int) (*models.Cart, error)
-	GetCartItems(cart_id int) (*[]models.CartItem, error)
+	FindCart(user_id int) (*models.Cart, error)
+	FindCartItems(cart_id int) (*[]models.CartItem, error)
 	ClearCart(cartItems *[]models.CartItem) error
 	FindCartItem(cartId, productId int) (*models.CartItem, error)
 	UpdateCartItem(cartItemId int, updateCartItem *models.CartItem) error
@@ -27,8 +27,8 @@ func (s *Services) CreateCart(user *models.User) error {
 	return nil
 }
 
-func (s *Services) GetCart(userId int) (*models.Cart, error) {
-	return s.storage.GetCart(userId)
+func (s *Services) Cart(userId int) (*models.Cart, error) {
+	return s.storage.FindCart(userId)
 }
 
 func (s *Services) AddToCart(userId, productId int) error {
@@ -42,7 +42,7 @@ func (s *Services) AddToCart(userId, productId int) error {
 		return gorm.ErrRecordNotFound
 	}
 
-	product, err := s.GetProductById(productId)
+	product, err := s.ProductById(productId)
 	if err != nil {
 		return err
 	}
@@ -78,12 +78,12 @@ func (s *Services) AddToCart(userId, productId int) error {
 }
 
 func (s *Services) ClearCart(user_id int) error {
-	cart, err := s.storage.GetCart(user_id)
+	cart, err := s.storage.FindCart(user_id)
 	if err != nil {
 		return err
 	}
 
-	cartItems, err := s.storage.GetCartItems(int(cart.ID))
+	cartItems, err := s.storage.FindCartItems(int(cart.ID))
 	if err != nil {
 		return err
 	}

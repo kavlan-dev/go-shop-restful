@@ -10,14 +10,16 @@ import (
 )
 
 type ProductService interface {
-	GetProducts(limit, offset int) (*[]models.Product, error)
+	Products(limit, offset int) (*[]models.Product, error)
 	CreateProduct(product *models.Product) error
-	GetProductById(id int) (*models.Product, error)
+	ProductById(id int) (*models.Product, error)
+	ProductByTitle(title string) (*models.Product, error)
 	UpdateProduct(id int, updateProduct *models.Product) error
 	DeleteProduct(id int) error
 }
 
-func (h *Handler) GetProducts(c *gin.Context) {
+// TODO Добавить фильтрацию и сортировку
+func (h *Handler) Products(c *gin.Context) {
 	limitStr := c.Query("limit")
 	offsetStr := c.Query("offset")
 
@@ -46,7 +48,7 @@ func (h *Handler) GetProducts(c *gin.Context) {
 		}
 	}
 
-	products, err := h.service.GetProducts(limit, offset)
+	products, err := h.service.Products(limit, offset)
 	if err != nil {
 		h.log.Error("Ошибка при получении всех товаров:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -91,7 +93,7 @@ func (h *Handler) PostProduct(c *gin.Context) {
 	c.JSON(http.StatusCreated, newProduct)
 }
 
-func (h *Handler) GetProductById(c *gin.Context) {
+func (h *Handler) ProductById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -100,7 +102,7 @@ func (h *Handler) GetProductById(c *gin.Context) {
 		return
 	}
 
-	product, err := h.service.GetProductById(id)
+	product, err := h.service.ProductById(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -117,6 +119,35 @@ func (h *Handler) GetProductById(c *gin.Context) {
 	}
 
 	h.log.Debugf("Получен товар #%d с названием %s", id, product.Title)
+	c.JSON(http.StatusOK, product)
+}
+
+func (h *Handler) ProductByTitle(c *gin.Context) {
+	title := c.Param("title")
+	if title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "отсутствует заголовок",
+		})
+		return
+	}
+
+	product, err := h.service.ProductByTitle(title)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "товар не найден",
+			})
+		} else {
+			h.log.Errorf("Товар \"%s\" не найден: %v", title, err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "не удалось найти товар",
+				"details": err,
+			})
+		}
+		return
+	}
+
+	h.log.Debugf("Получен товар #%d с названием %s", product.ID, title)
 	c.JSON(http.StatusOK, product)
 }
 

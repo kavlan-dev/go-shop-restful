@@ -6,13 +6,13 @@ func (s *Storage) CreateCart(cart *models.Cart) error {
 	return s.db.Create(&cart).Error
 }
 
-func (s *Storage) GetCart(user_id int) (*models.Cart, error) {
+func (s *Storage) FindCart(user_id int) (*models.Cart, error) {
 	var cart models.Cart
 	err := s.db.Preload("Items").Where("user_id = ?", user_id).First(&cart).Error
 	return &cart, err
 }
 
-func (s *Storage) GetCartItems(cart_id int) (*[]models.CartItem, error) {
+func (s *Storage) FindCartItems(cart_id int) (*[]models.CartItem, error) {
 	var cartItems []models.CartItem
 	err := s.db.Where("cart_id = ?", cart_id).Find(&cartItems).Error
 	return &cartItems, err

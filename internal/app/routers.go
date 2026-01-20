@@ -33,11 +33,12 @@ func Router(cfg *config.Config, handler *handlers.Handler) error {
 	admin.Use(middleware.AdminMiddleware())
 
 	product := api.Group("/products")
-	product.GET("/", handler.GetProducts)
-	product.GET("/:id", handler.GetProductById)
+	product.GET("/", handler.Products)
+	product.GET("/:id", handler.ProductById)
+	product.GET("/title/:title", handler.ProductByTitle)
 
 	cart := api.Group("/cart")
-	cart.GET("/", handler.GetCart)
+	cart.GET("/", handler.Cart)
 	cart.POST("/:id", handler.AddToCart)
 	cart.DELETE("/", handler.ClearCart)
 

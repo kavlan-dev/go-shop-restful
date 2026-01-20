@@ -25,6 +25,7 @@ type CartItem struct {
 	Product   Product `json:"product" gorm:"foreignKey:ProductID"`
 }
 
+// TODO Добавить заказы
 // type Order struct {
 // 	gorm.Model
 // 	UserID uint        `json:"user_id" gorm:"not null"`
