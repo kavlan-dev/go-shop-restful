@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+
+	"gorm.io/gorm"
+)
 
 type User struct {
 	gorm.Model
@@ -25,4 +29,18 @@ type RegisterRequest struct {
 	Username string `json:"username" binding:"required,min=3,max=50"`
 	Password string `json:"password" binding:"required,min=6,max=100"`
 	Email    string `json:"email" binding:"required,email,max=100"`
+}
+
+func (u *User) Validate() error {
+	if u.Username == "" {
+		return fmt.Errorf("Имя пользователя не может быть пустым")
+	}
+	if u.Password == "" {
+		return fmt.Errorf("Укажите пароль")
+	}
+	if u.Email == "" {
+		return fmt.Errorf("Введите свою электронную почту")
+	}
+
+	return nil
 }

@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+
+	"gorm.io/gorm"
+)
 
 type Product struct {
 	gorm.Model
@@ -24,4 +28,15 @@ type ProductUpdateRequest struct {
 	Price       float64 `json:"price" binding:"required,min=0"`
 	Category    string  `json:"category" binding:"max=50"`
 	Stock       uint    `json:"stock" binding:"min=0"`
+}
+
+func (p *Product) Validate() error {
+	if p.Title == "" {
+		return fmt.Errorf("Заголовок не может быть пустым")
+	}
+	if p.Price < 0 {
+		return fmt.Errorf("Цена не может быть отрицательной")
+	}
+
+	return nil
 }

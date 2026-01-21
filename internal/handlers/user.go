@@ -20,10 +20,9 @@ type UserService interface {
 func (h *Handler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.log.Error("Ошибка в теле запроса регистрации:", err)
+		h.log.Errorf("Ошибка в теле запроса регистрации: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "не верное тело запроса",
-			"details": err,
+			"error": "не верное тело запроса",
 		})
 		return
 	}
@@ -34,25 +33,31 @@ func (h *Handler) Register(c *gin.Context) {
 		Email:    req.Email,
 	}
 
+	if err := user.Validate(); err != nil {
+		h.log.Error("Пустые обязательные поля при регистрации:", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err,
+		})
+		return
+	}
+
 	if err := h.service.CreateUser(user); err != nil {
-		h.log.Error("Ошибка при создании пользователя:", err)
+		h.log.Errorf("Ошибка при создании пользователя: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "не удалось создать пользователя",
-			"details": err,
+			"error": "не удалось создать пользователя",
 		})
 		return
 	}
 
 	if err := h.service.CreateCart(user); err != nil {
-		h.log.Error("Ошибка создания корзины пользователя #%d: %v", user.ID, err)
+		h.log.Errorf("Ошибка создания корзины пользователя #%d: %v", user.ID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "не удалось создать корзину для пользователя",
-			"details": err,
+			"error": "не удалось создать корзину для пользователя",
 		})
 		return
 	}
 
-	h.log.Debugf("Успешное создание пользователя:", user)
+	h.log.Debugf("Успешное создание пользователя #%d", user.ID)
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "пользователь успешно создан",
 	})
@@ -61,31 +66,27 @@ func (h *Handler) Register(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var req models.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.log.Error("Ошибка в теле запроса логина:", err)
+		h.log.Errorf("Ошибка в теле запроса логина: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "не верное тело запроса",
-			"details": err,
+			"error": "не верное тело запроса",
 		})
 		return
 	}
 
 	user, err := h.service.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
-		h.log.Error("Ошибка авторизации:", err)
+		h.log.Errorf("Ошибка авторизации пользователя %s: %v", req.Username, err)
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error":   "не удалось авторизоваться",
-			"details": err,
+			"error": "неверное имя пользователя или пароль",
 		})
 		return
 	}
-	h.log.Debug(user)
 
 	token, err := utils.GenerateJWT(user.ID, user.Role)
 	if err != nil {
-		h.log.Error("Ошибка генерации токена:", err)
+		h.log.Errorf("Ошибка генерации токена для пользователя #%d: %v", user.ID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "не удалось сгенерировать JWT токен",
-			"details": err,
+			"error": "не удалось сгенерировать JWT токен",
 		})
 		return
 	}
@@ -99,6 +100,7 @@ func (h *Handler) Login(c *gin.Context) {
 func (h *Handler) PromoteToAdmin(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.log.Errorf("Ошибка парсинга ID пользователя: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "не верно введен id",
 		})
@@ -108,13 +110,12 @@ func (h *Handler) PromoteToAdmin(c *gin.Context) {
 	if err := h.service.PromoteUserToAdmin(userID); err != nil {
 		h.log.Errorf("Ошибка повышения пользователя #%d: %v", userID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "не удалось назначить пользователя администратором",
-			"details": err,
+			"error": "не удалось назначить пользователя администратором",
 		})
 		return
 	}
 
-	h.log.Debugf("Пользователь #%d повышен", userID)
+	h.log.Debugf("Пользователь #%d повышен до администратора", userID)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "пользователь повышен до администратора",
 	})
@@ -123,8 +124,9 @@ func (h *Handler) PromoteToAdmin(c *gin.Context) {
 func (h *Handler) DowngradeToCustomer(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.log.Errorf("Ошибка парсинга ID пользователя: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Не верно введен id",
+			"error": "не верно введен id",
 		})
 		return
 	}
@@ -132,14 +134,13 @@ func (h *Handler) DowngradeToCustomer(c *gin.Context) {
 	if err := h.service.DowngradeUserToCustomer(userID); err != nil {
 		h.log.Errorf("Ошибка понижения пользователя #%d: %v", userID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "Не удалось понизить пользователя",
-			"details": err,
+			"error": "не удалось понизить пользователя",
 		})
 		return
 	}
 
-	h.log.Debugf("Пользователь #%d понижен", userID)
+	h.log.Debugf("Пользователь #%d понижен до обычного пользователя", userID)
 	c.JSON(http.StatusOK, gin.H{
-		"message": "пользователь понижен",
+		"message": "пользователь понижен до обычного пользователя",
 	})
 }

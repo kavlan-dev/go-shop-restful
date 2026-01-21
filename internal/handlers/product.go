@@ -29,6 +29,7 @@ func (h *Handler) Products(c *gin.Context) {
 	if limitStr != "" {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil {
+			h.log.Errorf("Ошибка парсинга параметра limit: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "не верно введен limit",
 			})
@@ -41,6 +42,7 @@ func (h *Handler) Products(c *gin.Context) {
 	if offsetStr != "" {
 		offset, err = strconv.Atoi(offsetStr)
 		if err != nil {
+			h.log.Errorf("Ошибка парсинга параметра offset: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "не верно введен offset",
 			})
@@ -50,24 +52,23 @@ func (h *Handler) Products(c *gin.Context) {
 
 	products, err := h.service.Products(limit, offset)
 	if err != nil {
-		h.log.Error("Ошибка при получении всех товаров:", err)
+		h.log.Errorf("Ошибка при получении всех товаров: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "не удалось получить товары",
-			"details": err,
+			"error": "не удалось получить товары",
 		})
 		return
 	}
 
+	h.log.Debugf("Получено %d товаров", len(*products))
 	c.JSON(http.StatusOK, products)
 }
 
 func (h *Handler) PostProduct(c *gin.Context) {
 	var req models.ProductCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.log.Error("Ошибка в теле создания товара:", err)
+		h.log.Errorf("Ошибка в теле создания товара: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "не верное тело запроса",
-			"details": err,
+			"error": "не верное тело запроса",
 		})
 		return
 	}
@@ -80,11 +81,18 @@ func (h *Handler) PostProduct(c *gin.Context) {
 		Stock:       req.Stock,
 	}
 
+	if err := newProduct.Validate(); err != nil {
+		h.log.Error("Некорректные данные для создания товара:", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err,
+		})
+		return
+	}
+
 	if err := h.service.CreateProduct(newProduct); err != nil {
 		h.log.Errorf("Ошибка создания товара %s: %v", newProduct.Title, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "не удалось создать товар",
-			"details": err,
+			"error": "не удалось создать товар",
 		})
 		return
 	}
@@ -96,7 +104,8 @@ func (h *Handler) PostProduct(c *gin.Context) {
 func (h *Handler) ProductById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "не верно введен id",
 		})
 		return
@@ -105,14 +114,14 @@ func (h *Handler) ProductById(c *gin.Context) {
 	product, err := h.service.ProductById(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
+			h.log.Debugf("Товар #%d не найден", id)
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "товар не найден",
 			})
 		} else {
-			h.log.Errorf("Товар #%d не найден: %v", id, err)
+			h.log.Errorf("Ошибка при получении товара #%d: %v", id, err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "не удалось найти товар",
-				"details": err,
+				"error": "не удалось найти товар",
 			})
 		}
 		return
@@ -125,6 +134,7 @@ func (h *Handler) ProductById(c *gin.Context) {
 func (h *Handler) ProductByTitle(c *gin.Context) {
 	title := c.Param("title")
 	if title == "" {
+		h.log.Error("Пустой заголовок товара в запросе")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "отсутствует заголовок",
 		})
@@ -134,14 +144,14 @@ func (h *Handler) ProductByTitle(c *gin.Context) {
 	product, err := h.service.ProductByTitle(title)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
+			h.log.Debugf("Товар с названием \"%s\" не найден", title)
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "товар не найден",
 			})
 		} else {
-			h.log.Errorf("Товар \"%s\" не найден: %v", title, err)
+			h.log.Errorf("Ошибка при получении товара \"%s\": %v", title, err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "не удалось найти товар",
-				"details": err,
+				"error": "не удалось найти товар",
 			})
 		}
 		return
@@ -154,7 +164,8 @@ func (h *Handler) ProductByTitle(c *gin.Context) {
 func (h *Handler) PutProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "не верно введен id",
 		})
 		return
@@ -164,8 +175,7 @@ func (h *Handler) PutProduct(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса для обновления товара #%d: %v", id, err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "не верное тело запроса",
-			"details": err,
+			"error": "не верное тело запроса",
 		})
 		return
 	}
@@ -177,16 +187,24 @@ func (h *Handler) PutProduct(c *gin.Context) {
 		Stock:       req.Stock,
 	}
 
+	if err := updateProduct.Validate(); err != nil {
+		h.log.Errorf("Некорректные данные для обновления товара #%d: %v", id, err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err,
+		})
+		return
+	}
+
 	if err := h.service.UpdateProduct(id, updateProduct); err != nil {
 		if err == gorm.ErrRecordNotFound {
+			h.log.Debugf("Товар #%d не найден для обновления", id)
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "товар не найден",
 			})
 		} else {
 			h.log.Errorf("Ошибка при изменении товара #%d: %v", id, err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "не удалось обновить товар",
-				"details": err,
+				"error": "не удалось обновить товар",
 			})
 		}
 		return
@@ -201,6 +219,7 @@ func (h *Handler) PutProduct(c *gin.Context) {
 func (h *Handler) DeleteProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "не верно введен id",
 		})
@@ -209,18 +228,19 @@ func (h *Handler) DeleteProduct(c *gin.Context) {
 
 	if err := h.service.DeleteProduct(id); err != nil {
 		if err == gorm.ErrRecordNotFound {
+			h.log.Debugf("Товар #%d не найден для удаления", id)
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "товар не найден",
 			})
 		} else {
-			h.log.Error("Ошибка при удалении товара #%d: %v", id, err)
+			h.log.Errorf("Ошибка при удалении товара #%d: %v", id, err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "не удалось удалить товар",
-				"details": err,
+				"error": "не удалось удалить товар",
 			})
 		}
 		return
 	}
 
+	h.log.Debugf("Товар #%d успешно удален", id)
 	c.JSON(http.StatusNoContent, nil)
 }
