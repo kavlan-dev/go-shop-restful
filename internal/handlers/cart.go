@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type CartService interface {
+type cartService interface {
 	Cart(user_id int) (*models.Cart, error)
 	AddToCart(user_id, productID int) error
 	ClearCart(user_id int) error

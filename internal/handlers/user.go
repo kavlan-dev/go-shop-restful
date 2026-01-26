@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserService interface {
+type userService interface {
 	CreateCart(user *models.User) error
 	CreateUser(user *models.User) error
 	AuthenticateUser(username, password string) (*models.User, error)

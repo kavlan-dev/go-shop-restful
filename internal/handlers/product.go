@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProductService interface {
+type productService interface {
 	Products(limit, offset int) (*[]models.Product, error)
 	CreateProduct(product *models.Product) error
 	ProductById(id int) (*models.Product, error)

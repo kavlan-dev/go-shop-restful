@@ -1,15 +1,15 @@
 package services
 
-type StorageInterface interface {
-	ProductStorage
-	UserStorage
-	CartStorage
+type storageInterface interface {
+	productStorage
+	userStorage
+	cartStorage
 }
 
-type Services struct {
-	storage StorageInterface
+type service struct {
+	storage storageInterface
 }
 
-func NewServices(db StorageInterface) *Services {
-	return &Services{storage: db}
+func NewServices(db storageInterface) *service {
+	return &service{storage: db}
 }

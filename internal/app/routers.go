@@ -3,13 +3,41 @@ package app
 import (
 	"fmt"
 	"go-shop-restful/internal/config"
-	"go-shop-restful/internal/handlers"
 	"go-shop-restful/internal/middleware"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Router(cfg *config.Config, handler *handlers.Handler) error {
+type handlerInterface interface {
+	productHandler
+	userHandler
+	cartHandler
+}
+
+type productHandler interface {
+	Products(c *gin.Context)
+	ProductById(c *gin.Context)
+	ProductByTitle(c *gin.Context)
+	PostProduct(c *gin.Context)
+	PutProduct(c *gin.Context)
+	DeleteProduct(c *gin.Context)
+}
+
+type userHandler interface {
+	Register(c *gin.Context)
+	Login(c *gin.Context)
+	PromoteToAdmin(c *gin.Context)
+	DowngradeToCustomer(c *gin.Context)
+}
+
+type cartHandler interface {
+	Cart(c *gin.Context)
+	AddToCart(c *gin.Context)
+	ClearCart(c *gin.Context)
+}
+
+func Router(cfg *config.Config, handler handlerInterface) (*http.Server, error) {
 	var r *gin.Engine
 	switch cfg.Environment {
 	case "dev":
@@ -19,7 +47,7 @@ func Router(cfg *config.Config, handler *handlers.Handler) error {
 		r = gin.New()
 		r.Use(gin.Logger(), gin.Recovery())
 	default:
-		return fmt.Errorf("Не известное окружение %s", cfg.Environment)
+		return nil, fmt.Errorf("Не известное окружение %s", cfg.Environment)
 	}
 	r.Use(middleware.CORSMiddleware(cfg.AllowOrigins))
 
@@ -51,5 +79,10 @@ func Router(cfg *config.Config, handler *handlers.Handler) error {
 	adminProduct.PUT("/:id", handler.PutProduct)
 	adminProduct.DELETE("/:id", handler.DeleteProduct)
 
-	return r.Run(config.GetServerAddress(cfg))
+	server := &http.Server{
+		Addr:    config.GetServerAddress(cfg),
+		Handler: r,
+	}
+
+	return server, nil
 }

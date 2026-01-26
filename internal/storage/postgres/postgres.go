@@ -9,12 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
-type Storage struct {
+type storage struct {
 	db *gorm.DB
 }
 
-func NewStorage(db *gorm.DB) *Storage {
-	return &Storage{db: db}
+func NewStorage(db *gorm.DB) *storage {
+	return &storage{db: db}
 }
 
 func ConnectDB(cfg *config.Config) (*gorm.DB, error) {

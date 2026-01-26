@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"go-shop-restful/internal/app"
 	"go-shop-restful/internal/config"
 	"go-shop-restful/internal/handlers"
@@ -8,6 +9,11 @@ import (
 	"go-shop-restful/internal/storage/postgres"
 	"go-shop-restful/internal/utils"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -37,5 +43,30 @@ func main() {
 		logger.Errorf("Ошибка создания аккаунта администратора: %v", err)
 	}
 
-	log.Fatal(app.Router(cfg, handler))
+	server, err := app.Router(cfg, handler)
+	if err != nil {
+		logger.Fatalln("Ошибка создания сервера:", err)
+	}
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Fatalln("Ошибка запуска сервер:", err)
+		}
+	}()
+
+	<-sigCh
+	logger.Infoln("Получен сигнал завершения, начинаем graceful shutdown...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Errorf("Ошибка graceful shutdown: %v", err)
+		return
+	}
+
+	logger.Infoln("Сервер успешно завершил работу")
 }

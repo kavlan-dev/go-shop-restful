@@ -6,14 +6,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserStorage interface {
+type userStorage interface {
 	CreateUser(user *models.User) error
 	FindUserByUsername(username string) (*models.User, error)
 	FindUserById(userId int) (*models.User, error)
 	UpdateUser(userId int, updateUser *models.User) error
 }
 
-func (s *Services) CreateUser(user *models.User) error {
+func (s *service) CreateUser(user *models.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -23,11 +23,11 @@ func (s *Services) CreateUser(user *models.User) error {
 	return s.storage.CreateUser(user)
 }
 
-func (s *Services) getUserByUsername(username string) (*models.User, error) {
+func (s *service) getUserByUsername(username string) (*models.User, error) {
 	return s.storage.FindUserByUsername(username)
 }
 
-func (s *Services) AuthenticateUser(username, password string) (*models.User, error) {
+func (s *service) AuthenticateUser(username, password string) (*models.User, error) {
 	user, err := s.getUserByUsername(username)
 	if err != nil {
 		return nil, err
@@ -40,15 +40,15 @@ func (s *Services) AuthenticateUser(username, password string) (*models.User, er
 	return user, nil
 }
 
-func (s *Services) GetUserById(userId int) (*models.User, error) {
+func (s *service) GetUserById(userId int) (*models.User, error) {
 	return s.storage.FindUserById(userId)
 }
 
-func (s *Services) UpdateUser(userId int, updateUser *models.User) error {
+func (s *service) UpdateUser(userId int, updateUser *models.User) error {
 	return s.storage.UpdateUser(userId, updateUser)
 }
 
-func (s *Services) CreateAdminIfNotExists(adminUsername, adminEmail, adminPassword string) error {
+func (s *service) CreateAdminIfNotExists(adminUsername, adminEmail, adminPassword string) error {
 	admin, _ := s.getUserByUsername(adminUsername)
 	if admin.ID != 0 {
 		return nil
@@ -71,7 +71,7 @@ func (s *Services) CreateAdminIfNotExists(adminUsername, adminEmail, adminPasswo
 	return nil
 }
 
-func (s *Services) PromoteUserToAdmin(userId int) error {
+func (s *service) PromoteUserToAdmin(userId int) error {
 	user, err := s.GetUserById(userId)
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func (s *Services) PromoteUserToAdmin(userId int) error {
 	return nil
 }
 
-func (s *Services) DowngradeUserToCustomer(userId int) error {
+func (s *service) DowngradeUserToCustomer(userId int) error {
 	user, err := s.GetUserById(userId)
 	if err != nil {
 		return err

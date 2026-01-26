@@ -2,17 +2,17 @@ package handlers
 
 import "go.uber.org/zap"
 
-type ServicesInterface interface {
-	ProductService
-	UserService
-	CartService
+type serviceInterface interface {
+	productService
+	userService
+	cartService
 }
 
 type Handler struct {
-	service ServicesInterface
+	service serviceInterface
 	log     *zap.SugaredLogger
 }
 
-func NewHandler(service ServicesInterface, log *zap.SugaredLogger) *Handler {
+func NewHandler(service serviceInterface, log *zap.SugaredLogger) *Handler {
 	return &Handler{service: service, log: log}
 }

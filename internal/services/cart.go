@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type CartStorage interface {
+type cartStorage interface {
 	CreateCart(cart *models.Cart) error
 	FindCart(user_id int) (*models.Cart, error)
 	FindCartItems(cart_id int) (*[]models.CartItem, error)
@@ -16,7 +16,7 @@ type CartStorage interface {
 	CreateCartItem(cartItem *models.CartItem) error
 }
 
-func (s *Services) CreateCart(user *models.User) error {
+func (s *service) CreateCart(user *models.User) error {
 	if user.Cart.UserID != 0 {
 		return nil
 	}
@@ -27,11 +27,11 @@ func (s *Services) CreateCart(user *models.User) error {
 	return nil
 }
 
-func (s *Services) Cart(userId int) (*models.Cart, error) {
+func (s *service) Cart(userId int) (*models.Cart, error) {
 	return s.storage.FindCart(userId)
 }
 
-func (s *Services) AddToCart(userId, productId int) error {
+func (s *service) AddToCart(userId, productId int) error {
 	user, err := s.GetUserById(userId)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (s *Services) AddToCart(userId, productId int) error {
 	return nil
 }
 
-func (s *Services) ClearCart(user_id int) error {
+func (s *service) ClearCart(user_id int) error {
 	cart, err := s.storage.FindCart(user_id)
 	if err != nil {
 		return err
