@@ -8,11 +8,11 @@ type serviceInterface interface {
 	cartService
 }
 
-type Handler struct {
+type handler struct {
 	service serviceInterface
 	log     *zap.SugaredLogger
 }
 
-func NewHandler(service serviceInterface, log *zap.SugaredLogger) *Handler {
-	return &Handler{service: service, log: log}
+func NewHandler(service serviceInterface, log *zap.SugaredLogger) *handler {
+	return &handler{service: service, log: log}
 }

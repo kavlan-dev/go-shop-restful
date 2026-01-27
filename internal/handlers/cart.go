@@ -15,7 +15,7 @@ type cartService interface {
 	ClearCart(user_id int) error
 }
 
-func (h *Handler) Cart(c *gin.Context) {
+func (h *handler) Cart(c *gin.Context) {
 	userId, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -46,7 +46,7 @@ func (h *Handler) Cart(c *gin.Context) {
 	c.JSON(http.StatusOK, cart)
 }
 
-func (h *Handler) AddToCart(c *gin.Context) {
+func (h *handler) AddToCart(c *gin.Context) {
 	productId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)
@@ -90,7 +90,7 @@ func (h *Handler) AddToCart(c *gin.Context) {
 	})
 }
 
-func (h *Handler) ClearCart(c *gin.Context) {
+func (h *handler) ClearCart(c *gin.Context) {
 	userId, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{

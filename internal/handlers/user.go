@@ -17,7 +17,7 @@ type userService interface {
 	DowngradeUserToCustomer(userID int) error
 }
 
-func (h *Handler) Register(c *gin.Context) {
+func (h *handler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса регистрации: %v", err)
@@ -63,7 +63,7 @@ func (h *Handler) Register(c *gin.Context) {
 	})
 }
 
-func (h *Handler) Login(c *gin.Context) {
+func (h *handler) Login(c *gin.Context) {
 	var req models.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса логина: %v", err)
@@ -97,7 +97,7 @@ func (h *Handler) Login(c *gin.Context) {
 	})
 }
 
-func (h *Handler) PromoteToAdmin(c *gin.Context) {
+func (h *handler) PromoteToAdmin(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID пользователя: %v", err)
@@ -121,7 +121,7 @@ func (h *Handler) PromoteToAdmin(c *gin.Context) {
 	})
 }
 
-func (h *Handler) DowngradeToCustomer(c *gin.Context) {
+func (h *handler) DowngradeToCustomer(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID пользователя: %v", err)

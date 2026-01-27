@@ -19,7 +19,7 @@ type productService interface {
 }
 
 // TODO Добавить фильтрацию и сортировку
-func (h *Handler) Products(c *gin.Context) {
+func (h *handler) Products(c *gin.Context) {
 	limitStr := c.Query("limit")
 	offsetStr := c.Query("offset")
 
@@ -63,7 +63,7 @@ func (h *Handler) Products(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-func (h *Handler) PostProduct(c *gin.Context) {
+func (h *handler) PostProduct(c *gin.Context) {
 	var req models.ProductCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле создания товара: %v", err)
@@ -101,7 +101,7 @@ func (h *Handler) PostProduct(c *gin.Context) {
 	c.JSON(http.StatusCreated, newProduct)
 }
 
-func (h *Handler) ProductById(c *gin.Context) {
+func (h *handler) ProductById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
@@ -131,7 +131,7 @@ func (h *Handler) ProductById(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
-func (h *Handler) ProductByTitle(c *gin.Context) {
+func (h *handler) ProductByTitle(c *gin.Context) {
 	title := c.Param("title")
 	if title == "" {
 		h.log.Error("Пустой заголовок товара в запросе")
@@ -161,7 +161,7 @@ func (h *Handler) ProductByTitle(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
-func (h *Handler) PutProduct(c *gin.Context) {
+func (h *handler) PutProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
@@ -216,7 +216,7 @@ func (h *Handler) PutProduct(c *gin.Context) {
 	})
 }
 
-func (h *Handler) DeleteProduct(c *gin.Context) {
+func (h *handler) DeleteProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
