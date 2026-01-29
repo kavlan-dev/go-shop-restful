@@ -8,8 +8,8 @@ func (s *storage) FindProducts(limit, offset int) (*[]models.Product, error) {
 	return &products, err
 }
 
-func (s *storage) CreateProduct(product *models.Product) error {
-	return s.db.Create(&product).Error
+func (s *storage) CreateProduct(newProduct *models.Product) error {
+	return s.db.Create(&newProduct).Error
 }
 
 func (s *storage) FindProductById(id int) (*models.Product, error) {
@@ -18,8 +18,8 @@ func (s *storage) FindProductById(id int) (*models.Product, error) {
 	return &product, err
 }
 
-func (s *storage) FindProductByTitle(title string) (*models.Product, error) {
-	var product models.Product
+func (s *storage) FindProductByTitle(title string) (*[]models.Product, error) {
+	var product []models.Product
 	err := s.db.Where("title = ?", title).Find(&product).Error
 	return &product, err
 }
@@ -32,6 +32,6 @@ func (s *storage) UpdateProduct(id int, updateProduct *models.Product) error {
 	return s.db.Model(&product).Updates(&updateProduct).Error
 }
 
-func (s *storage) DeleteProduct(product *models.Product) error {
-	return s.db.Delete(&product).Error
+func (s *storage) DeleteProduct(id int) error {
+	return s.db.Delete(&models.Product{}, id).Error
 }

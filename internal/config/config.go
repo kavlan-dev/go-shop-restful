@@ -66,6 +66,6 @@ func LoadConfig() (*Config, error) {
 	return &config, nil
 }
 
-func ServerAddress(config *Config) string {
-	return fmt.Sprintf("%s:%d", config.ServerHost, config.ServerPort)
+func (c *Config) ServerAddress() string {
+	return fmt.Sprintf("%s:%d", c.ServerHost, c.ServerPort)
 }

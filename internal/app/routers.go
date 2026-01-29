@@ -80,7 +80,7 @@ func Router(cfg *config.Config, handler handlerInterface) (*http.Server, error) 
 	adminProduct.DELETE("/:id", handler.DeleteProduct)
 
 	server := &http.Server{
-		Addr:    config.ServerAddress(cfg),
+		Addr:    cfg.ServerAddress(),
 		Handler: r,
 	}
 

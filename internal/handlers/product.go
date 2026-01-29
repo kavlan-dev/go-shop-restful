@@ -13,7 +13,7 @@ type productService interface {
 	Products(limit, offset int) (*[]models.Product, error)
 	CreateProduct(product *models.Product) error
 	ProductById(id int) (*models.Product, error)
-	ProductByTitle(title string) (*models.Product, error)
+	ProductByTitle(title string) (*[]models.Product, error)
 	UpdateProduct(id int, updateProduct *models.Product) error
 	DeleteProduct(id int) error
 }
@@ -59,6 +59,14 @@ func (h *handler) Products(c *gin.Context) {
 		return
 	}
 
+	if len(*products) == 0 {
+		h.log.Debug("В базе данных отсутствуют данные")
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "товары не найдены",
+		})
+		return
+	}
+
 	h.log.Debugf("Получено %d товаров", len(*products))
 	c.JSON(http.StatusOK, products)
 }
@@ -79,14 +87,6 @@ func (h *handler) PostProduct(c *gin.Context) {
 		Price:       req.Price,
 		Category:    req.Category,
 		Stock:       req.Stock,
-	}
-
-	if err := newProduct.Validate(); err != nil {
-		h.log.Error("Некорректные данные для создания товара:", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
-		return
 	}
 
 	if err := h.service.CreateProduct(newProduct); err != nil {
@@ -141,7 +141,7 @@ func (h *handler) ProductByTitle(c *gin.Context) {
 		return
 	}
 
-	product, err := h.service.ProductByTitle(title)
+	products, err := h.service.ProductByTitle(title)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			h.log.Debugf("Товар с названием \"%s\" не найден", title)
@@ -157,8 +157,8 @@ func (h *handler) ProductByTitle(c *gin.Context) {
 		return
 	}
 
-	h.log.Debugf("Получен товар #%d с названием %s", product.ID, title)
-	c.JSON(http.StatusOK, product)
+	h.log.Debugf("Получено %d товаров с названием %s", len(*products), title)
+	c.JSON(http.StatusOK, products)
 }
 
 func (h *handler) PutProduct(c *gin.Context) {
@@ -185,14 +185,6 @@ func (h *handler) PutProduct(c *gin.Context) {
 		Description: req.Description,
 		Price:       req.Price,
 		Stock:       req.Stock,
-	}
-
-	if err := updateProduct.Validate(); err != nil {
-		h.log.Errorf("Некорректные данные для обновления товара #%d: %v", id, err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
-		return
 	}
 
 	if err := h.service.UpdateProduct(id, updateProduct); err != nil {

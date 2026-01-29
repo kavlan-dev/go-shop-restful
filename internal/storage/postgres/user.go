@@ -2,8 +2,8 @@ package postgres
 
 import "go-shop-restful/internal/models"
 
-func (s *storage) CreateUser(user *models.User) error {
-	return s.db.Create(&user).Error
+func (s *storage) CreateUser(newUser *models.User) error {
+	return s.db.Create(&newUser).Error
 }
 
 func (s *storage) FindUserByUsername(username string) (*models.User, error) {

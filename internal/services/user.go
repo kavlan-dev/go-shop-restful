@@ -7,20 +7,32 @@ import (
 )
 
 type userStorage interface {
-	CreateUser(user *models.User) error
+	CreateUser(newUser *models.User) error
 	FindUserByUsername(username string) (*models.User, error)
 	FindUserById(userId int) (*models.User, error)
 	UpdateUser(userId int, updateUser *models.User) error
 }
 
-func (s *service) CreateUser(user *models.User) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+func (s *service) CreateUser(newUser *models.User) error {
+	if err := newUser.Validate(); err != nil {
+		return err
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	user.Password = string(hashedPassword)
+	newUser.Password = string(hashedPassword)
 
-	return s.storage.CreateUser(user)
+	if err := s.storage.CreateUser(newUser); err != nil {
+		return err
+	}
+
+	if err := s.CreateCart(newUser); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) getUserByUsername(username string) (*models.User, error) {
@@ -62,9 +74,6 @@ func (s *service) CreateAdminIfNotExists(adminUsername, adminEmail, adminPasswor
 	}
 
 	if err := s.CreateUser(adminUser); err != nil {
-		return err
-	}
-	if err := s.CreateCart(adminUser); err != nil {
 		return err
 	}
 

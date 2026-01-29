@@ -33,26 +33,10 @@ func (h *handler) Register(c *gin.Context) {
 		Email:    req.Email,
 	}
 
-	if err := user.Validate(); err != nil {
-		h.log.Error("Пустые обязательные поля при регистрации:", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
-		return
-	}
-
 	if err := h.service.CreateUser(user); err != nil {
 		h.log.Errorf("Ошибка при создании пользователя: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "не удалось создать пользователя",
-		})
-		return
-	}
-
-	if err := h.service.CreateCart(user); err != nil {
-		h.log.Errorf("Ошибка создания корзины пользователя #%d: %v", user.ID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "не удалось создать корзину для пользователя",
 		})
 		return
 	}
