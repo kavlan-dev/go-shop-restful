@@ -1,8 +1,8 @@
-package handlers
+package handler
 
 import (
-	"go-shop-restful/internal/models"
-	"go-shop-restful/internal/utils"
+	"go-shop-restful/internal/model"
+	"go-shop-restful/internal/util"
 	"net/http"
 	"strconv"
 
@@ -10,15 +10,15 @@ import (
 )
 
 type userService interface {
-	CreateCart(user *models.User) error
-	CreateUser(user *models.User) error
-	AuthenticateUser(username, password string) (*models.User, error)
+	CreateCart(user *model.User) error
+	CreateUser(user *model.User) error
+	AuthenticateUser(username, password string) (*model.User, error)
 	PromoteUserToAdmin(userID int) error
 	DowngradeUserToCustomer(userID int) error
 }
 
 func (h *handler) Register(c *gin.Context) {
-	var req models.RegisterRequest
+	var req model.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса регистрации: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -27,7 +27,7 @@ func (h *handler) Register(c *gin.Context) {
 		return
 	}
 
-	user := &models.User{
+	user := &model.User{
 		Username: req.Username,
 		Password: req.Password,
 		Email:    req.Email,
@@ -48,7 +48,7 @@ func (h *handler) Register(c *gin.Context) {
 }
 
 func (h *handler) Login(c *gin.Context) {
-	var req models.AuthRequest
+	var req model.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса логина: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -66,7 +66,7 @@ func (h *handler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateJWT(user.ID, user.Role)
+	token, err := util.GenerateJWT(user.ID, user.Role)
 	if err != nil {
 		h.log.Errorf("Ошибка генерации токена для пользователя #%d: %v", user.ID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -76,7 +76,7 @@ func (h *handler) Login(c *gin.Context) {
 	}
 
 	h.log.Debugf("Пользователь #%d успешно вошел", user.ID)
-	c.JSON(http.StatusOK, models.AuthResponse{
+	c.JSON(http.StatusOK, model.AuthResponse{
 		Token: token,
 	})
 }

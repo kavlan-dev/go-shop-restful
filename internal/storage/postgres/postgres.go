@@ -3,7 +3,7 @@ package postgres
 import (
 	"fmt"
 	"go-shop-restful/internal/config"
-	"go-shop-restful/internal/models"
+	"go-shop-restful/internal/model"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,7 +26,7 @@ func ConnectDB(cfg *config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
 
-	if err := db.AutoMigrate(&models.Product{}, &models.User{}, &models.Cart{}, &models.CartItem{}); err != nil {
+	if err := db.AutoMigrate(&model.Product{}, &model.User{}, &model.Cart{}, &model.CartItem{}); err != nil {
 		return nil, err
 	}
 

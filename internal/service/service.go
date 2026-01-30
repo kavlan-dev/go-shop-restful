@@ -1,4 +1,4 @@
-package services
+package service
 
 type storageInterface interface {
 	productStorage
@@ -10,6 +10,6 @@ type service struct {
 	storage storageInterface
 }
 
-func NewServices(db storageInterface) *service {
+func NewService(db storageInterface) *service {
 	return &service{storage: db}
 }

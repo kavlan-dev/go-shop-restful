@@ -1,7 +1,7 @@
-package handlers
+package handler
 
 import (
-	"go-shop-restful/internal/models"
+	"go-shop-restful/internal/model"
 	"net/http"
 	"strconv"
 
@@ -10,11 +10,11 @@ import (
 )
 
 type productService interface {
-	Products(limit, offset int) (*[]models.Product, error)
-	CreateProduct(product *models.Product) error
-	ProductById(id int) (*models.Product, error)
-	ProductByTitle(title string) (*[]models.Product, error)
-	UpdateProduct(id int, updateProduct *models.Product) error
+	Products(limit, offset int) (*[]model.Product, error)
+	CreateProduct(product *model.Product) error
+	ProductById(id int) (*model.Product, error)
+	ProductByTitle(title string) (*[]model.Product, error)
+	UpdateProduct(id int, updateProduct *model.Product) error
 	DeleteProduct(id int) error
 }
 
@@ -72,7 +72,7 @@ func (h *handler) Products(c *gin.Context) {
 }
 
 func (h *handler) PostProduct(c *gin.Context) {
-	var req models.ProductCreateRequest
+	var req model.ProductCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле создания товара: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -81,7 +81,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 		return
 	}
 
-	newProduct := &models.Product{
+	newProduct := &model.Product{
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       req.Price,
@@ -171,7 +171,7 @@ func (h *handler) PutProduct(c *gin.Context) {
 		return
 	}
 
-	var req models.ProductUpdateRequest
+	var req model.ProductUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса для обновления товара #%d: %v", id, err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -180,7 +180,7 @@ func (h *handler) PutProduct(c *gin.Context) {
 		return
 	}
 
-	updateProduct := &models.Product{
+	updateProduct := &model.Product{
 		Category:    req.Category,
 		Description: req.Description,
 		Price:       req.Price,

@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitLogger(env string) (*zap.SugaredLogger, error) {
+func NewLogger(env string) (*zap.SugaredLogger, error) {
 	var (
 		logger *zap.Logger
 		err    error

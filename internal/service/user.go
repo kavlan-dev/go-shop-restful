@@ -1,19 +1,19 @@
-package services
+package service
 
 import (
-	"go-shop-restful/internal/models"
+	"go-shop-restful/internal/model"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type userStorage interface {
-	CreateUser(newUser *models.User) error
-	FindUserByUsername(username string) (*models.User, error)
-	FindUserById(userId int) (*models.User, error)
-	UpdateUser(userId int, updateUser *models.User) error
+	CreateUser(newUser *model.User) error
+	FindUserByUsername(username string) (*model.User, error)
+	FindUserById(userId int) (*model.User, error)
+	UpdateUser(userId int, updateUser *model.User) error
 }
 
-func (s *service) CreateUser(newUser *models.User) error {
+func (s *service) CreateUser(newUser *model.User) error {
 	if err := newUser.Validate(); err != nil {
 		return err
 	}
@@ -35,11 +35,11 @@ func (s *service) CreateUser(newUser *models.User) error {
 	return nil
 }
 
-func (s *service) getUserByUsername(username string) (*models.User, error) {
+func (s *service) getUserByUsername(username string) (*model.User, error) {
 	return s.storage.FindUserByUsername(username)
 }
 
-func (s *service) AuthenticateUser(username, password string) (*models.User, error) {
+func (s *service) AuthenticateUser(username, password string) (*model.User, error) {
 	user, err := s.getUserByUsername(username)
 	if err != nil {
 		return nil, err
@@ -52,11 +52,11 @@ func (s *service) AuthenticateUser(username, password string) (*models.User, err
 	return user, nil
 }
 
-func (s *service) GetUserById(userId int) (*models.User, error) {
+func (s *service) UserById(userId int) (*model.User, error) {
 	return s.storage.FindUserById(userId)
 }
 
-func (s *service) UpdateUser(userId int, updateUser *models.User) error {
+func (s *service) UpdateUser(userId int, updateUser *model.User) error {
 	return s.storage.UpdateUser(userId, updateUser)
 }
 
@@ -66,7 +66,7 @@ func (s *service) CreateAdminIfNotExists(adminUsername, adminEmail, adminPasswor
 		return nil
 	}
 
-	adminUser := &models.User{
+	adminUser := &model.User{
 		Username: adminUsername,
 		Password: adminPassword,
 		Email:    adminEmail,
@@ -81,7 +81,7 @@ func (s *service) CreateAdminIfNotExists(adminUsername, adminEmail, adminPasswor
 }
 
 func (s *service) PromoteUserToAdmin(userId int) error {
-	user, err := s.GetUserById(userId)
+	user, err := s.UserById(userId)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func (s *service) PromoteUserToAdmin(userId int) error {
 }
 
 func (s *service) DowngradeUserToCustomer(userId int) error {
-	user, err := s.GetUserById(userId)
+	user, err := s.UserById(userId)
 	if err != nil {
 		return err
 	}

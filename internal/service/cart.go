@@ -1,38 +1,38 @@
-package services
+package service
 
 import (
-	"go-shop-restful/internal/models"
+	"go-shop-restful/internal/model"
 
 	"gorm.io/gorm"
 )
 
 type cartStorage interface {
-	CreateCart(cart *models.Cart) error
-	FindCart(user_id int) (*models.Cart, error)
-	FindCartItems(cart_id int) (*[]models.CartItem, error)
-	ClearCart(cartItems *[]models.CartItem) error
-	FindCartItem(cartId, productId int) (*models.CartItem, error)
-	UpdateCartItem(cartItemId int, updateCartItem *models.CartItem) error
-	CreateCartItem(cartItem *models.CartItem) error
+	CreateCart(cart *model.Cart) error
+	FindCart(user_id int) (*model.Cart, error)
+	FindCartItems(cart_id int) (*[]model.CartItem, error)
+	ClearCart(cartItems *[]model.CartItem) error
+	FindCartItem(cartId, productId int) (*model.CartItem, error)
+	UpdateCartItem(cartItemId int, updateCartItem *model.CartItem) error
+	CreateCartItem(cartItem *model.CartItem) error
 }
 
-func (s *service) CreateCart(user *models.User) error {
+func (s *service) CreateCart(user *model.User) error {
 	if user.Cart.UserID != 0 {
 		return nil
 	}
-	cart := models.Cart{UserID: user.ID}
+	cart := model.Cart{UserID: user.ID}
 	if err := s.storage.CreateCart(&cart); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *service) Cart(userId int) (*models.Cart, error) {
+func (s *service) Cart(userId int) (*model.Cart, error) {
 	return s.storage.FindCart(userId)
 }
 
 func (s *service) AddToCart(userId, productId int) error {
-	user, err := s.GetUserById(userId)
+	user, err := s.storage.FindUserById(userId)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (s *service) AddToCart(userId, productId int) error {
 		return gorm.ErrRecordNotFound
 	}
 
-	product, err := s.ProductById(productId)
+	product, err := s.storage.FindProductById(productId)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (s *service) AddToCart(userId, productId int) error {
 			return err
 		}
 	} else {
-		newCartItem := models.CartItem{
+		newCartItem := model.CartItem{
 			CartID:    cart.ID,
 			ProductID: uint(productId),
 			Quantity:  1,
@@ -70,7 +70,7 @@ func (s *service) AddToCart(userId, productId int) error {
 		}
 	}
 	product.Stock -= 1
-	if err := s.UpdateProduct(productId, product); err != nil {
+	if err := s.storage.UpdateProduct(productId, product); err != nil {
 		return err
 	}
 

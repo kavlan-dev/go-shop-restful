@@ -1,7 +1,7 @@
-package handlers
+package handler
 
 import (
-	"go-shop-restful/internal/models"
+	"go-shop-restful/internal/model"
 	"net/http"
 	"strconv"
 
@@ -10,7 +10,7 @@ import (
 )
 
 type cartService interface {
-	Cart(user_id int) (*models.Cart, error)
+	Cart(user_id int) (*model.Cart, error)
 	AddToCart(user_id, productID int) error
 	ClearCart(user_id int) error
 }
@@ -24,7 +24,7 @@ func (h *handler) Cart(c *gin.Context) {
 		return
 	}
 
-	userIdFloat, ok := userId.(float64)
+	userIdUint, ok := userId.(uint)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "внутренняя ошибка сервера",
@@ -32,7 +32,7 @@ func (h *handler) Cart(c *gin.Context) {
 		return
 	}
 
-	cart, err := h.service.Cart(int(userIdFloat))
+	cart, err := h.service.Cart(int(userIdUint))
 	if err != nil {
 		h.log.Error("Ошибка при выводе корзины:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -61,7 +61,7 @@ func (h *handler) AddToCart(c *gin.Context) {
 		return
 	}
 
-	userIdFloat, ok := userId.(float64)
+	userIdUint, ok := userId.(uint)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "внутренняя ошибка сервера",
@@ -69,7 +69,7 @@ func (h *handler) AddToCart(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.AddToCart(int(userIdFloat), productId); err != nil {
+	if err := h.service.AddToCart(int(userIdUint), productId); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "товар не найден",
@@ -99,7 +99,7 @@ func (h *handler) ClearCart(c *gin.Context) {
 		return
 	}
 
-	userIdFloat, ok := userId.(float64)
+	userIdUint, ok := userId.(uint)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "внутренняя ошибка сервера",
@@ -107,7 +107,7 @@ func (h *handler) ClearCart(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.ClearCart(int(userIdFloat)); err != nil {
+	if err := h.service.ClearCart(int(userIdUint)); err != nil {
 		h.log.Error("Ошибка при отчистке корзины:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "не удалось отчистить корзину",

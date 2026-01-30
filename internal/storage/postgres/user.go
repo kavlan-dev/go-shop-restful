@@ -1,27 +1,30 @@
 package postgres
 
-import "go-shop-restful/internal/models"
+import "go-shop-restful/internal/model"
 
-func (s *storage) CreateUser(newUser *models.User) error {
+func (s *storage) CreateUser(newUser *model.User) error {
 	return s.db.Create(&newUser).Error
 }
 
-func (s *storage) FindUserByUsername(username string) (*models.User, error) {
-	var user models.User
+func (s *storage) FindUserByUsername(username string) (*model.User, error) {
+	var user model.User
 	err := s.db.Preload("Cart").Where("username = ?", username).First(&user).Error
+
 	return &user, err
 }
 
-func (s *storage) FindUserById(userId int) (*models.User, error) {
-	var user models.User
+func (s *storage) FindUserById(userId int) (*model.User, error) {
+	var user model.User
 	err := s.db.Preload("Cart").First(&user, userId).Error
+
 	return &user, err
 }
 
-func (s *storage) UpdateUser(userId int, updateUser *models.User) error {
-	user, err := s.FindUserById(userId)
-	if err != nil {
+func (s *storage) UpdateUser(userId int, updateUser *model.User) error {
+	var user model.User
+	if err := s.db.Preload("Cart").First(&user, userId).Error; err != nil {
 		return err
 	}
+
 	return s.db.Model(&user).Updates(updateUser).Error
 }

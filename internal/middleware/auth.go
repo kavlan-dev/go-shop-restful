@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"go-shop-restful/internal/utils"
+	"go-shop-restful/internal/util"
 	"net/http"
 	"strings"
 
@@ -21,7 +21,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		token, err := utils.ValidateJWT(tokenString)
+		token, err := util.ValidateJWT(tokenString)
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "не валидный токен",

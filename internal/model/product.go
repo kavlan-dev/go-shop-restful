@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ type ProductCreateRequest struct {
 
 type ProductUpdateRequest struct {
 	Description string  `json:"description" binding:"max=1000"`
-	Price       float64 `json:"price" binding:"required,min=0"`
+	Price       float64 `json:"price" binding:"min=0"`
 	Category    string  `json:"category" binding:"max=50"`
 	Stock       uint    `json:"stock" binding:"min=0"`
 }

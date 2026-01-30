@@ -22,7 +22,7 @@ type Config struct {
 	AdminEmail    string
 }
 
-func LoadConfig() (*Config, error) {
+func InitConfig() (*Config, error) {
 	v := viper.New()
 
 	v.SetConfigName("config")
