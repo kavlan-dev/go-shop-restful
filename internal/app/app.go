@@ -39,7 +39,7 @@ func Run() {
 	service := service.NewService(storage)
 	handler := handler.NewHandler(service, logger)
 
-	if err := service.CreateAdminIfNotExists(cfg.AdminName, cfg.AdminEmail, cfg.AdminPassword); err != nil {
+	if err := service.CreateAdminIfNotExists(cfg.Admin.Name, cfg.Admin.Email, cfg.Admin.Password); err != nil {
 		logger.Errorf("Ошибка создания аккаунта администратора: %v", err)
 	}
 

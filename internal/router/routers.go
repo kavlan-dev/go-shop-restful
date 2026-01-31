@@ -49,7 +49,7 @@ func Router(cfg *config.Config, handler handlerInterface) (*http.Server, error) 
 	default:
 		return nil, fmt.Errorf("Не известное окружение %s", cfg.Environment)
 	}
-	r.Use(middleware.CORSMiddleware(cfg.AllowOrigins))
+	r.Use(middleware.CORSMiddleware(cfg.CORS))
 
 	auth := r.Group("/api/auth")
 	auth.POST("/register", handler.Register)
