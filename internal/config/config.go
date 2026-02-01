@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
-
-	"github.com/spf13/viper"
+	"os"
+	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -35,46 +36,37 @@ type adminConfig struct {
 }
 
 func InitConfig() (*Config, error) {
-	v := viper.New()
+	var config Config
+	config.Environment = envOrDefault("ENV", "prod")
+	config.Server.Host = envOrDefault("SERVER_HOST", "localhost")
+	config.Database.Host = envOrDefault("DATABASE_HOST", "localhost")
+	config.Database.User = envOrDefault("DATABASE_USER", "postgres")
+	config.Database.Password = envOrDefault("DATABASE_PASSWORD", "postgres")
+	config.Database.Name = envOrDefault("DATABASE_NAME", "")
+	config.JWTSecret = envOrDefault("JWT_SECRET", "")
+	config.CORS = strings.Split(envOrDefault("CORS_ALLOW_ORIGINS", "*"), ",")
+	config.Admin.Name = envOrDefault("ADMIN_USERNAME", "admin")
+	config.Admin.Password = envOrDefault("ADMIN_PASSWORD", "admin")
+	config.Admin.Email = envOrDefault("ADMIN_EMAIL", "admin@example.com")
 
-	v.SetConfigName("config")
-	v.SetConfigType("yaml")
-
-	v.AddConfigPath("./config")
-	v.AddConfigPath("../../config")
-
-	if err := v.ReadInConfig(); err != nil {
-		return &Config{}, err
+	serverPort, err := strconv.Atoi(envOrDefault("SERVER_PORT", "8080"))
+	if err != nil {
+		return nil, fmt.Errorf("Не верный порт сервера: %v", err)
 	}
+	config.Server.Port = uint(serverPort)
 
-	config := Config{
-		Environment: v.GetString("env"),
-		Server: serverConfig{
-			Host: v.GetString("server.host"),
-			Port: v.GetUint("server.port"),
-		},
-		Database: databaseConfig{
-			Host:     v.GetString("database.host"),
-			Port:     v.GetUint("database.port"),
-			User:     v.GetString("database.user"),
-			Password: v.GetString("database.password"),
-			Name:     v.GetString("database.name"),
-		},
-		JWTSecret: v.GetString("jwt.secret"),
-		CORS:      v.GetStringSlice("cors.allow_origins"),
-		Admin: adminConfig{
-			Name:     v.GetString("admin.username"),
-			Password: v.GetString("admin.password"),
-			Email:    v.GetString("admin.email"),
-		},
+	databasePort, err := strconv.Atoi(envOrDefault("DATABASE_PORT", "5432"))
+	if err != nil {
+		return nil, fmt.Errorf("Не верный порт базы данных: %v", err)
 	}
+	config.Database.Port = uint(databasePort)
 
 	if config.JWTSecret == "" {
 		return nil, fmt.Errorf("JWT secret не может быть пустым")
 	}
 
-	if config.Server.Port == 0 {
-		config.Server.Port = 8080
+	if config.Database.Name == "" {
+		return nil, fmt.Errorf("Имя базы данных не может быть пустым")
 	}
 
 	if config.Environment != "dev" && config.Environment != "prod" {
@@ -86,4 +78,13 @@ func InitConfig() (*Config, error) {
 
 func (c *Config) ServerAddress() string {
 	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
+}
+
+func envOrDefault(varName string, defaultValue string) string {
+	value := os.Getenv(varName)
+	if value == "" {
+		value = defaultValue
+	}
+
+	return value
 }
