@@ -19,7 +19,7 @@ import (
 func Run() {
 	cfg, err := config.InitConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Ошибка инициализации конфигурации:", err)
 	}
 
 	logger, err := util.NewLogger(cfg.Environment)
@@ -30,12 +30,11 @@ func Run() {
 
 	util.InitJWT(cfg.JWTSecret)
 
-	db, err := postgres.ConnectDB(cfg)
+	storage, err := postgres.NewStorage(cfg)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("Ошибка инициализации хранилища: %v", err)
 	}
 
-	storage := postgres.NewStorage(db)
 	service := service.NewService(storage)
 	handler := handler.NewHandler(service, logger)
 

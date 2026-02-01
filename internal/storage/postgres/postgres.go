@@ -13,11 +13,7 @@ type storage struct {
 	db *gorm.DB
 }
 
-func NewStorage(db *gorm.DB) *storage {
-	return &storage{db: db}
-}
-
-func ConnectDB(cfg *config.Config) (*gorm.DB, error) {
+func NewStorage(cfg *config.Config) (*storage, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 		cfg.Database.Host, cfg.Database.User, cfg.Database.Password, cfg.Database.Name, cfg.Database.Port)
 
@@ -30,5 +26,5 @@ func ConnectDB(cfg *config.Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	return db, nil
+	return &storage{db: db}, nil
 }
