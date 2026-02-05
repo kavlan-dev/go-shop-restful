@@ -1,10 +1,10 @@
-version: "3.8"
-
 services:
   app:
-    build: .
+    image: go-shop-restful
+    build:
+      context: .
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - "8080:8080"
     env_file:
       - .env
     depends_on:
@@ -12,21 +12,18 @@ services:
         condition: service_healthy
 
   db:
-    image: postgres:latest
+    image: postgres
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
 
 volumes:
   pgdata:
-    driver: local
