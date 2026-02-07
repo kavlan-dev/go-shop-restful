@@ -16,8 +16,11 @@ func (s *storage) FindUserByUsername(username string) (*model.User, error) {
 func (s *storage) FindUserById(userId int) (*model.User, error) {
 	var user model.User
 	err := s.db.Preload("Cart").First(&user, userId).Error
+	if err != nil {
+		return nil, err
+	}
 
-	return &user, err
+	return &user, nil
 }
 
 func (s *storage) UpdateUser(userId int, updateUser *model.User) error {

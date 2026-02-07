@@ -11,7 +11,7 @@ func AdminMiddleware() gin.HandlerFunc {
 		role, exists := c.Get("user_role")
 		if !exists {
 			c.JSON(http.StatusForbidden, gin.H{
-				"error": "Role information not found",
+				"error": "информация о роли не найдена",
 			})
 			c.Abort()
 			return
@@ -19,7 +19,7 @@ func AdminMiddleware() gin.HandlerFunc {
 
 		if role != "admin" {
 			c.JSON(http.StatusForbidden, gin.H{
-				"error": "Admin access required",
+				"error": "требуются права администратора",
 			})
 			c.Abort()
 			return
