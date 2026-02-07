@@ -53,7 +53,7 @@
 </div>
 
 - **Go 1.25+** - Язык программирования
-- **PostgreSQL 12+** - Реляционная база данных
+- **PostgreSQL** - Реляционная база данных
 - **Git** - Система контроля версий
 
 **Важно**: Убедитесь, что у вас установлены все необходимые зависимости перед запуском проекта.
@@ -75,64 +75,104 @@ go mod download
 
 ## Конфигурация
 
-1. **Шаблон конфигурации**: В проекте доступен шаблон конфигурационного файла `config/config.example.yaml`. Скопируйте его в `config/config.yaml` и настройте параметры:
+Проект использует переменные окружения для конфигурации. Создайте файл `.env` на основе шаблона `.env.example`:
 
 ```bash
-cp config/config.example.yaml config/config.yaml
+cp .env.example .env
 ```
 
-2. **Структура конфигурационного файла**:
+### Основные переменные окружения:
 
-```yaml
-# Server Configuration
-server:
-  host: localhost
-  port: 8080
+```env
+# Окружение (dev/prod)
+ENV=dev
 
-# Database Configuration
-database:
-  host: localhost
-  user: myuser
-  password: pass
-  name: mydb
-  port: 5432
+# Сервер
+SERVER_HOST=localhost
+SERVER_PORT=8080
 
-# JWT Configuration
-jwt:
-  secret: your-very-secure-secret-key
+# База данных PostgreSQL
+DATABASE_HOST=localhost
+DATABASE_USER=postgres
+DATABASE_PASSWORD=postgres
+DATABASE_NAME=shop_db
+DATABASE_PORT=5432
 
-# CORS Configuration
-cors:
-  allow_origins:
-    - "http://localhost:3000"
-    - "https://your-frontend.com"
+# JWT Конфигурация
+JWT_SECRET=your-very-secure-secret-key
+
+# CORS (разделенные запятыми)
+CORS_ALLOW_ORIGINS=http://localhost:3000,https://your-frontend.com
+
+# Администратор по умолчанию
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin
+ADMIN_EMAIL=admin@example.com
 ```
 
-3. **Важно**: Файл `config/config.yaml` добавлен в `.gitignore`, чтобы избежать коммита чувствительных данных (паролей, секретных ключей) в репозиторий.
-
-Приложение будет автоматически загружать конфигурацию из файла `config/config.yaml` при запуске.
+**Важно**: Файл `.env` добавлен в `.gitignore` для защиты чувствительных данных.
 
 ## Запуск
 
-```bash
-go run main.go
-```
-
-Сервер будет запущен на порту `8080` по умолчанию. Для production-окружения рекомендуется использовать:
+### Локальный запуск
 
 ```bash
-go build -o shop-api
-./shop-api
+go run cmd/app/main.go
 ```
 
-**Важно**: При первом запуске приложение автоматически создаст учетную запись администратора, если она не существует. Параметры администратора настраиваются в конфигурационном файле `config/config.yaml`:
+### Сборка и запуск
 
-```yaml
-# Admin
-admin:
-  username: "admin"
-  password: "admin123"
-  email: "admin@email.com"
+```bash
+go build ./cmd/app
+./app
+```
+
+### Запуск с Docker
+
+```bash
+docker-compose up --build
+```
+
+Сервер будет доступен на `http://localhost:8080`.
+
+## Docker и Docker Compose
+
+Проект поддерживает контейнеризацию с помощью Docker и Docker Compose.
+
+### Требования
+
+- Docker или Podman
+- Docker Compose или Podman Compose
+
+### Запуск с Docker Compose
+
+```bash
+# Создайте .env файл на основе шаблона
+cp .env.example .env
+
+# Запустите контейнеры
+docker-compose up --build
+```
+
+### Конфигурация Docker
+
+- **Dockerfile**: Многоэтапная сборка для оптимизации размера образа
+- **docker-compose.yml**: Конфигурация для запуска приложения и PostgreSQL
+- **Тома**: Данные PostgreSQL сохраняются в томе `pgdata` для сохранения данных между перезапусками
+
+### Использование с Podman
+
+```bash
+# Запуск с Podman Compose
+podman-compose up --build
+```
+
+**Важно**: При первом запуске приложение автоматически создаст учетную запись администратора, если она не существует. Параметры администратора настраиваются в переменных окружения:
+
+```env
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin
+ADMIN_EMAIL=admin@example.com
 ```
 
 Если администратор уже существует, автоматическое создание будет пропущено.
@@ -304,17 +344,24 @@ API возвращает стандартные HTTP-статусы и JSON-от
 
 ```
 .
-├── main.go                  # Точка входа приложения
-├── config/                  # Конфигурационные файлы
-│   └── config.example.yaml  # Шаблон конфигурации
+├── cmd/
+│   └── app/
+│       └── main.go          # Точка входа приложения
 ├── internal/                # Основной исходный код
+│   ├── app/                 # Основное приложение
 │   ├── config/              # Работа с конфигурацией
-│   ├── database/            # Подключение к базе данных
-│   ├── handlers/            # HTTP обработчики
+│   ├── handler/             # HTTP обработчики
 │   ├── middleware/          # Middleware (аутентификация, CORS)
-│   ├── models/              # Модели данных
-│   ├── services/            # Бизнес-логика
-│   └── utils/               # Утилиты (JWT, логирование)
+│   ├── model/               # Модели данных
+│   ├── router/              # Маршрутизация
+│   ├── service/             # Бизнес-логика
+│   ├── storage/             # Хранилище данных
+│   │   └── postgres/        # Реализация для PostgreSQL
+│   └── util/                # Утилиты (JWT, логирование)
+├── pgdata/                  # Данные PostgreSQL (для Docker)
+├── .env.example             # Шаблон переменных окружения
+├── docker-compose.yml       # Docker Compose конфигурация
+├── Dockerfile               # Docker конфигурация
 ├── go.mod                   # Модуль Go
 ├── go.sum                   # Контрольные суммы зависимостей
 └── README.md                # Документация
@@ -326,9 +373,10 @@ API возвращает стандартные HTTP-статусы и JSON-от
 - **ORM**: [GORM](https://gorm.io/) - работа с PostgreSQL
 - **Логирование**: [Zap](https://github.com/uber-go/zap) - высокопроизводительное логирование
 - **JWT**: [golang-jwt/jwt](https://github.com/golang-jwt/jwt) - аутентификация
-- **Конфигурация**: [Viper](https://github.com/spf13/viper) - управление конфигурацией
+- **Конфигурация**: Переменные окружения - управление конфигурацией
 - **База данных**: PostgreSQL - реляционная база данных
 - **CORS**: [gin-contrib/cors](https://github.com/gin-contrib/cors) - middleware для CORS
+- **Контейнеризация**: Docker и Docker Compose для развертывания
 
 ## Архитектура
 

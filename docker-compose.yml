@@ -3,6 +3,8 @@ services:
     image: go-shop-restful
     build:
       context: .
+      dockerfile: Dockerfile
+    container_name: shop-api
     ports:
       - "8080:8080"
     env_file:
@@ -10,9 +12,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
 
   db:
-    image: postgres
+    image: postgres:alpine
+    container_name: shop-db
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
@@ -24,6 +28,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    restart: unless-stopped
 
 volumes:
   pgdata:
