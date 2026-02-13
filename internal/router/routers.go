@@ -51,6 +51,8 @@ func Router(cfg *config.Config, handler handlerInterface) (*http.Server, error) 
 	}
 	r.Use(middleware.CORSMiddleware(cfg.CORS))
 
+	r.GET("/api/products", handler.Products)
+
 	auth := r.Group("/api/auth")
 	auth.POST("/register", handler.Register)
 	auth.POST("/login", handler.Login)
@@ -61,7 +63,6 @@ func Router(cfg *config.Config, handler handlerInterface) (*http.Server, error) 
 	admin.Use(middleware.AdminMiddleware())
 
 	product := api.Group("/products")
-	product.GET("/", handler.Products)
 	product.GET("/:id", handler.ProductById)
 	product.GET("/title/:title", handler.ProductByTitle)
 

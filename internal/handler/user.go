@@ -66,7 +66,7 @@ func (h *handler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := util.GenerateJWT(user.ID, user.Role)
+	token, err := util.GenerateJWT(user.ID, user.Role, user.Username)
 	if err != nil {
 		h.log.Errorf("Ошибка генерации токена для пользователя #%d: %v", user.ID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{

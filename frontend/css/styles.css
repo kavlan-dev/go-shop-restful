@@ -1,0 +1,156 @@
+/* Custom styles for Go Shop dark theme */
+
+body {
+    background-color: #121212 !important;
+    color: #f8f9fa !important;
+}
+
+.bg-dark {
+    background-color: #121212 !important;
+}
+
+.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+.bg-secondary {
+    background-color: #212529 !important;
+}
+
+.card {
+    background-color: #1e1e1e !important;
+    border: 1px solid #333 !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link.active {
+    color: white !important;
+    font-weight: 500;
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.jumbotron {
+    background-color: #1e1e1e !important;
+    border: 1px solid #333 !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Form styles */
+.form-control {
+    background-color: #1e1e1e !important;
+    border: 1px solid #333 !important;
+    color: white !important;
+}
+
+.form-control:focus {
+    background-color: #1e1e1e !important;
+    border-color: #0d6efd !important;
+    color: white !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+.form-label {
+    color: #adb5bd !important;
+}
+
+/* Table styles */
+.table {
+    color: white !important;
+}
+
+.table-dark {
+    --bs-table-bg: #1e1e1e;
+    --bs-table-striped-bg: #212529;
+    --bs-table-hover-bg: #2a2e32;
+}
+
+/* Product card hover effect */
+.product-card {
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error message */
+.error-message {
+    color: #dc3545 !important;
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    border: 1px solid #dc3545 !important;
+    padding: 10px 15px !important;
+    border-radius: 5px !important;
+    margin-bottom: 15px !important;
+}
+
+/* Success message */
+.success-message {
+    color: #198754 !important;
+    background-color: rgba(25, 135, 84, 0.1) !important;
+    border: 1px solid #198754 !important;
+    padding: 10px 15px !important;
+    border-radius: 5px !important;
+    margin-bottom: 15px !important;
+}
+
+/* Admin badge */
+.badge-admin {
+    background-color: #dc3545 !important;
+}
+
+.badge-customer {
+    background-color: #0d6efd !important;
+}
