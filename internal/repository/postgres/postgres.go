@@ -9,13 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type storage struct {
-	db *gorm.DB
-}
-
-func NewStorage(cfg *config.Config) (*storage, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		cfg.Database.Host, cfg.Database.User, cfg.Database.Password, cfg.Database.Name, cfg.Database.Port)
+func NewStorage(cfg *config.Config) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable",
+		cfg.Database.Host, cfg.Database.User, cfg.Database.Password, cfg.Database.Name)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -26,5 +22,5 @@ func NewStorage(cfg *config.Config) (*storage, error) {
 		return nil, err
 	}
 
-	return &storage{db: db}, nil
+	return db, nil
 }

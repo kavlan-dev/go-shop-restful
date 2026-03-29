@@ -13,7 +13,20 @@ type userStorage interface {
 	UpdateUser(userId int, updateUser *model.User) error
 }
 
-func (s *service) CreateUser(newUser *model.User) error {
+type cartCreator interface {
+	CreateCart(user *model.User) error
+}
+
+type userService struct {
+	storage     userStorage
+	cartCreator cartCreator
+}
+
+func NewUserService(storage userStorage, cartCreator cartCreator) *userService {
+	return &userService{storage: storage, cartCreator: cartCreator}
+}
+
+func (s userService) CreateUser(newUser *model.User) error {
 	if err := newUser.Validate(); err != nil {
 		return err
 	}
@@ -28,18 +41,18 @@ func (s *service) CreateUser(newUser *model.User) error {
 		return err
 	}
 
-	if err := s.CreateCart(newUser); err != nil {
+	if err := s.cartCreator.CreateCart(newUser); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *service) getUserByUsername(username string) (*model.User, error) {
+func (s userService) getUserByUsername(username string) (*model.User, error) {
 	return s.storage.FindUserByUsername(username)
 }
 
-func (s *service) AuthenticateUser(username, password string) (*model.User, error) {
+func (s userService) AuthenticateUser(username, password string) (*model.User, error) {
 	user, err := s.getUserByUsername(username)
 	if err != nil {
 		return nil, err
@@ -52,15 +65,15 @@ func (s *service) AuthenticateUser(username, password string) (*model.User, erro
 	return user, nil
 }
 
-func (s *service) UserById(userId int) (*model.User, error) {
+func (s userService) UserById(userId int) (*model.User, error) {
 	return s.storage.FindUserById(userId)
 }
 
-func (s *service) UpdateUser(userId int, updateUser *model.User) error {
+func (s userService) UpdateUser(userId int, updateUser *model.User) error {
 	return s.storage.UpdateUser(userId, updateUser)
 }
 
-func (s *service) CreateAdminIfNotExists(adminUsername, adminEmail, adminPassword string) error {
+func (s userService) CreateAdminIfNotExists(adminUsername, adminEmail, adminPassword string) error {
 	admin, _ := s.getUserByUsername(adminUsername)
 	if admin.ID != 0 {
 		return nil
@@ -80,7 +93,7 @@ func (s *service) CreateAdminIfNotExists(adminUsername, adminEmail, adminPasswor
 	return nil
 }
 
-func (s *service) PromoteUserToAdmin(userId int) error {
+func (s userService) PromoteUserToAdmin(userId int) error {
 	user, err := s.UserById(userId)
 	if err != nil {
 		return err
@@ -98,7 +111,7 @@ func (s *service) PromoteUserToAdmin(userId int) error {
 	return nil
 }
 
-func (s *service) DowngradeUserToCustomer(userId int) error {
+func (s userService) DowngradeUserToCustomer(userId int) error {
 	user, err := s.UserById(userId)
 	if err != nil {
 		return err

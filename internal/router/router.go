@@ -4,16 +4,9 @@ import (
 	"fmt"
 	"go-shop-restful/internal/config"
 	"go-shop-restful/internal/middleware"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
-
-type handlerInterface interface {
-	productHandler
-	userHandler
-	cartHandler
-}
 
 type productHandler interface {
 	Products(c *gin.Context)
@@ -37,7 +30,7 @@ type cartHandler interface {
 	ClearCart(c *gin.Context)
 }
 
-func Router(cfg *config.Config, handler handlerInterface) (*http.Server, error) {
+func NewRouter(cfg *config.Config, productHandler productHandler, userHandler userHandler, cartHandler cartHandler) (*gin.Engine, error) {
 	var r *gin.Engine
 	switch cfg.Environment {
 	case "dev":
@@ -51,11 +44,11 @@ func Router(cfg *config.Config, handler handlerInterface) (*http.Server, error) 
 	}
 	r.Use(middleware.CORSMiddleware(cfg.CORS))
 
-	r.GET("/api/products", handler.Products)
+	r.GET("/api/products", productHandler.Products)
 
 	auth := r.Group("/api/auth")
-	auth.POST("/register", handler.Register)
-	auth.POST("/login", handler.Login)
+	auth.POST("/register", userHandler.Register)
+	auth.POST("/login", userHandler.Login)
 
 	api := r.Group("/api")
 	api.Use(middleware.AuthMiddleware())
@@ -63,27 +56,22 @@ func Router(cfg *config.Config, handler handlerInterface) (*http.Server, error) 
 	admin.Use(middleware.AdminMiddleware())
 
 	product := api.Group("/products")
-	product.GET("/:id", handler.ProductById)
-	product.GET("/title/:title", handler.ProductByTitle)
+	product.GET("/:id", productHandler.ProductById)
+	product.GET("/title/:title", productHandler.ProductByTitle)
 
 	cart := api.Group("/cart")
-	cart.GET("/", handler.Cart)
-	cart.POST("/:id", handler.AddToCart)
-	cart.DELETE("/", handler.ClearCart)
+	cart.GET("/", cartHandler.Cart)
+	cart.POST("/:id", cartHandler.AddToCart)
+	cart.DELETE("/", cartHandler.ClearCart)
 
 	adminUsers := admin.Group("/users")
-	adminUsers.POST("/:id/promote", handler.PromoteToAdmin)
-	adminUsers.POST("/:id/downgrade", handler.DowngradeToCustomer)
+	adminUsers.POST("/:id/promote", userHandler.PromoteToAdmin)
+	adminUsers.POST("/:id/downgrade", userHandler.DowngradeToCustomer)
 
 	adminProduct := admin.Group("/products")
-	adminProduct.POST("/", handler.PostProduct)
-	adminProduct.PUT("/:id", handler.PutProduct)
-	adminProduct.DELETE("/:id", handler.DeleteProduct)
+	adminProduct.POST("/", productHandler.PostProduct)
+	adminProduct.PUT("/:id", productHandler.PutProduct)
+	adminProduct.DELETE("/:id", productHandler.DeleteProduct)
 
-	server := &http.Server{
-		Addr:    cfg.ServerAddress(),
-		Handler: r,
-	}
-
-	return server, nil
+	return r, nil
 }

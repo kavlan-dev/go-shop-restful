@@ -3,22 +3,15 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 )
 
 type Config struct {
 	Environment string
-	Server      serverConfig
 	Database    databaseConfig
 	JWTSecret   string
 	CORS        []string
 	Admin       adminConfig
-}
-
-type serverConfig struct {
-	Host string
-	Port uint
 }
 
 type databaseConfig struct {
@@ -26,7 +19,6 @@ type databaseConfig struct {
 	User     string
 	Password string
 	Name     string
-	Port     uint
 }
 
 type adminConfig struct {
@@ -38,7 +30,6 @@ type adminConfig struct {
 func InitConfig() (*Config, error) {
 	var config Config
 	config.Environment = envOrDefault("ENV", "prod")
-	config.Server.Host = envOrDefault("SERVER_HOST", "localhost")
 	config.Database.Host = envOrDefault("DATABASE_HOST", "localhost")
 	config.Database.User = envOrDefault("DATABASE_USER", "postgres")
 	config.Database.Password = envOrDefault("DATABASE_PASSWORD", "postgres")
@@ -48,18 +39,6 @@ func InitConfig() (*Config, error) {
 	config.Admin.Name = envOrDefault("ADMIN_USERNAME", "admin")
 	config.Admin.Password = envOrDefault("ADMIN_PASSWORD", "admin")
 	config.Admin.Email = envOrDefault("ADMIN_EMAIL", "admin@example.com")
-
-	serverPort, err := strconv.Atoi(envOrDefault("SERVER_PORT", "8080"))
-	if err != nil {
-		return nil, fmt.Errorf("Не верный порт сервера: %v", err)
-	}
-	config.Server.Port = uint(serverPort)
-
-	databasePort, err := strconv.Atoi(envOrDefault("DATABASE_PORT", "5432"))
-	if err != nil {
-		return nil, fmt.Errorf("Не верный порт базы данных: %v", err)
-	}
-	config.Database.Port = uint(databasePort)
 
 	if config.JWTSecret == "" {
 		return nil, fmt.Errorf("JWT secret не может быть пустым")
@@ -74,10 +53,6 @@ func InitConfig() (*Config, error) {
 	}
 
 	return &config, nil
-}
-
-func (c *Config) ServerAddress() string {
-	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
 }
 
 func envOrDefault(varName string, defaultValue string) string {

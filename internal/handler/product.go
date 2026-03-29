@@ -6,20 +6,33 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type productService interface {
-	Products(limit, offset int) (*[]model.Product, error)
+	Products(limit, offset int) ([]model.Product, error)
 	CreateProduct(product *model.Product) error
 	ProductById(id int) (*model.Product, error)
-	ProductByTitle(title string) (*[]model.Product, error)
+	ProductByTitle(title string) ([]model.Product, error)
 	UpdateProduct(id int, updateProduct *model.Product) error
 	DeleteProduct(id int) error
 }
 
+type productHandler struct {
+	service productService
+	log     *zap.SugaredLogger
+}
+
+func NewProductHandler(service productService, log *zap.SugaredLogger) *productHandler {
+	return &productHandler{
+		service: service,
+		log:     log,
+	}
+}
+
 // TODO Добавить фильтрацию и сортировку
-func (h *handler) Products(c *gin.Context) {
+func (h productHandler) Products(c *gin.Context) {
 	limitStr := c.Query("limit")
 	offsetStr := c.Query("offset")
 
@@ -59,7 +72,7 @@ func (h *handler) Products(c *gin.Context) {
 		return
 	}
 
-	if len(*products) == 0 {
+	if len(products) == 0 {
 		h.log.Debug("В базе данных отсутствуют данные")
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "товары не найдены",
@@ -67,11 +80,11 @@ func (h *handler) Products(c *gin.Context) {
 		return
 	}
 
-	h.log.Debugf("Получено %d товаров", len(*products))
+	h.log.Debugf("Получено %d товаров", len(products))
 	c.JSON(http.StatusOK, products)
 }
 
-func (h *handler) PostProduct(c *gin.Context) {
+func (h productHandler) PostProduct(c *gin.Context) {
 	var req model.ProductCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле создания товара: %v", err)
@@ -101,7 +114,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 	c.JSON(http.StatusCreated, newProduct)
 }
 
-func (h *handler) ProductById(c *gin.Context) {
+func (h productHandler) ProductById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
@@ -131,7 +144,7 @@ func (h *handler) ProductById(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
-func (h *handler) ProductByTitle(c *gin.Context) {
+func (h productHandler) ProductByTitle(c *gin.Context) {
 	title := c.Param("title")
 	if title == "" {
 		h.log.Error("Пустой заголовок товара в запросе")
@@ -157,11 +170,11 @@ func (h *handler) ProductByTitle(c *gin.Context) {
 		return
 	}
 
-	h.log.Debugf("Получено %d товаров с названием %s", len(*products), title)
+	h.log.Debugf("Получено %d товаров с названием %s", len(products), title)
 	c.JSON(http.StatusOK, products)
 }
 
-func (h *handler) PutProduct(c *gin.Context) {
+func (h productHandler) PutProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
@@ -203,12 +216,10 @@ func (h *handler) PutProduct(c *gin.Context) {
 	}
 
 	h.log.Debugf("Товар #%d успешно изменен", id)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "продукт успешно изменен",
-	})
+	c.JSON(http.StatusOK, updateProduct)
 }
 
-func (h *handler) DeleteProduct(c *gin.Context) {
+func (h productHandler) DeleteProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)

@@ -9,30 +9,40 @@ import (
 type cartStorage interface {
 	CreateCart(cart *model.Cart) error
 	FindCart(user_id int) (*model.Cart, error)
-	FindCartItems(cart_id int) (*[]model.CartItem, error)
-	ClearCart(cartItems *[]model.CartItem) error
+	FindCartItems(cart_id int) ([]model.CartItem, error)
+	ClearCart(cartItems []model.CartItem) error
 	FindCartItem(cartId, productId int) (*model.CartItem, error)
 	UpdateCartItem(cartItemId int, updateCartItem *model.CartItem) error
 	CreateCartItem(cartItem *model.CartItem) error
 }
 
-func (s *service) CreateCart(user *model.User) error {
+type cartService struct {
+	storage           cartStorage
+	userRepository    userStorage
+	productRepository productStorage
+}
+
+func NewCartService(storage cartStorage, userRepository userStorage, productRepository productStorage) *cartService {
+	return &cartService{storage: storage, userRepository: userRepository, productRepository: productRepository}
+}
+
+func (s cartService) CreateCart(user *model.User) error {
 	if user.Cart.UserID != 0 {
 		return nil
 	}
-	cart := model.Cart{UserID: user.ID}
-	if err := s.storage.CreateCart(&cart); err != nil {
+	cart := &model.Cart{UserID: user.ID}
+	if err := s.storage.CreateCart(cart); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *service) Cart(userId int) (*model.Cart, error) {
+func (s cartService) Cart(userId int) (*model.Cart, error) {
 	return s.storage.FindCart(userId)
 }
 
-func (s *service) AddToCart(userId, productId int) error {
-	user, err := s.storage.FindUserById(userId)
+func (s cartService) AddToCart(userId, productId int) error {
+	user, err := s.userRepository.FindUserById(userId)
 	if err != nil {
 		return err
 	}
@@ -42,7 +52,7 @@ func (s *service) AddToCart(userId, productId int) error {
 		return gorm.ErrRecordNotFound
 	}
 
-	product, err := s.storage.FindProductById(productId)
+	product, err := s.productRepository.FindProductById(productId)
 	if err != nil {
 		return err
 	}
@@ -59,25 +69,25 @@ func (s *service) AddToCart(userId, productId int) error {
 			return err
 		}
 	} else {
-		newCartItem := model.CartItem{
+		newCartItem := &model.CartItem{
 			CartID:    cart.ID,
 			ProductID: uint(productId),
 			Quantity:  1,
 			Price:     product.Price,
 		}
-		if err := s.storage.CreateCartItem(&newCartItem); err != nil {
+		if err := s.storage.CreateCartItem(newCartItem); err != nil {
 			return err
 		}
 	}
 	product.Stock -= 1
-	if err := s.storage.UpdateProduct(productId, product); err != nil {
+	if err := s.productRepository.UpdateProduct(productId, product); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *service) ClearCart(user_id int) error {
+func (s cartService) ClearCart(user_id int) error {
 	cart, err := s.storage.FindCart(user_id)
 	if err != nil {
 		return err

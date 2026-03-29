@@ -4,9 +4,10 @@ import (
 	"context"
 	"go-shop-restful/internal/config"
 	"go-shop-restful/internal/handler"
+	"go-shop-restful/internal/repository"
+	"go-shop-restful/internal/repository/postgres"
 	"go-shop-restful/internal/router"
 	"go-shop-restful/internal/service"
-	"go-shop-restful/internal/storage/postgres"
 	"go-shop-restful/internal/util"
 	"log"
 	"net/http"
@@ -30,42 +31,54 @@ func Run() {
 
 	util.InitJWT(cfg.JWTSecret)
 
-	storage, err := postgres.NewStorage(cfg)
+	db, err := postgres.NewStorage(cfg)
 	if err != nil {
 		logger.Fatalf("Ошибка инициализации хранилища: %v", err)
 	}
 
-	service := service.NewService(storage)
-	handler := handler.NewHandler(service, logger)
+	cartRepo := repository.NewCartRepository(db)
+	productRepo := repository.NewProductRepository(db)
+	userRepo := repository.NewUserRepository(db)
 
-	if err := service.CreateAdminIfNotExists(cfg.Admin.Name, cfg.Admin.Email, cfg.Admin.Password); err != nil {
+	cartService := service.NewCartService(cartRepo, userRepo, productRepo)
+	productService := service.NewProductService(productRepo)
+	userService := service.NewUserService(userRepo, cartService)
+
+	cartHandler := handler.NewCartHandler(cartService, logger)
+	productHandler := handler.NewProductHandler(productService, logger)
+	userHandler := handler.NewUserHandler(userService, logger)
+
+	if err := userService.CreateAdminIfNotExists(cfg.Admin.Name, cfg.Admin.Email, cfg.Admin.Password); err != nil {
 		logger.Errorf("Ошибка создания аккаунта администратора: %v", err)
 	}
 
-	server, err := router.Router(cfg, handler)
+	r, err := router.NewRouter(cfg, productHandler, userHandler, cartHandler)
 	if err != nil {
 		logger.Fatalln("Ошибка создания сервера:", err)
 	}
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatalln("Ошибка запуска сервер:", err)
+		<-sigCh
+		logger.Infoln("Остановка сервера...")
+		if err := srv.Shutdown(ctx); err != nil {
+			logger.Errorf("Ошибка graceful shutdown: %v", err)
+			return
 		}
+		logger.Infoln("Сервер успешно завершил работу")
 	}()
 
-	<-sigCh
-	logger.Infoln("Получен сигнал завершения, начинаем graceful shutdown...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		logger.Errorf("Ошибка graceful shutdown: %v", err)
-		return
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Fatalln("Ошибка запуска сервера:", err)
 	}
-
-	logger.Infoln("Сервер успешно завершил работу")
 }

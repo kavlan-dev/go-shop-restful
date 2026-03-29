@@ -7,17 +7,29 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type userService interface {
-	CreateCart(user *model.User) error
 	CreateUser(user *model.User) error
 	AuthenticateUser(username, password string) (*model.User, error)
 	PromoteUserToAdmin(userID int) error
 	DowngradeUserToCustomer(userID int) error
 }
 
-func (h *handler) Register(c *gin.Context) {
+type userHandler struct {
+	service userService
+	log     *zap.SugaredLogger
+}
+
+func NewUserHandler(service userService, log *zap.SugaredLogger) *userHandler {
+	return &userHandler{
+		service: service,
+		log:     log,
+	}
+}
+
+func (h userHandler) Register(c *gin.Context) {
 	var req model.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса регистрации: %v", err)
@@ -47,7 +59,7 @@ func (h *handler) Register(c *gin.Context) {
 	})
 }
 
-func (h *handler) Login(c *gin.Context) {
+func (h userHandler) Login(c *gin.Context) {
 	var req model.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса логина: %v", err)
@@ -81,7 +93,7 @@ func (h *handler) Login(c *gin.Context) {
 	})
 }
 
-func (h *handler) PromoteToAdmin(c *gin.Context) {
+func (h userHandler) PromoteToAdmin(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID пользователя: %v", err)
@@ -105,7 +117,7 @@ func (h *handler) PromoteToAdmin(c *gin.Context) {
 	})
 }
 
-func (h *handler) DowngradeToCustomer(c *gin.Context) {
+func (h userHandler) DowngradeToCustomer(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID пользователя: %v", err)

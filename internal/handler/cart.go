@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +16,19 @@ type cartService interface {
 	ClearCart(user_id int) error
 }
 
-func (h *handler) Cart(c *gin.Context) {
+type cartHandler struct {
+	service cartService
+	log     *zap.SugaredLogger
+}
+
+func NewCartHandler(service cartService, log *zap.SugaredLogger) *cartHandler {
+	return &cartHandler{
+		service: service,
+		log:     log,
+	}
+}
+
+func (h cartHandler) Cart(c *gin.Context) {
 	userId, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -46,7 +59,7 @@ func (h *handler) Cart(c *gin.Context) {
 	c.JSON(http.StatusOK, cart)
 }
 
-func (h *handler) AddToCart(c *gin.Context) {
+func (h cartHandler) AddToCart(c *gin.Context) {
 	productId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)
@@ -90,7 +103,7 @@ func (h *handler) AddToCart(c *gin.Context) {
 	})
 }
 
-func (h *handler) ClearCart(c *gin.Context) {
+func (h cartHandler) ClearCart(c *gin.Context) {
 	userId, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{

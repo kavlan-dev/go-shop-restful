@@ -2,13 +2,13 @@ package model
 
 import "gorm.io/gorm"
 
-const (
-	OrderStatusPending    = "pending"
-	OrderStatusProcessing = "processing"
-	OrderStatusShipped    = "shipped"
-	OrderStatusDelivered  = "delivered"
-	OrderStatusCancelled  = "cancelled"
-)
+// const (
+// 	OrderStatusPending    = "pending"
+// 	OrderStatusProcessing = "processing"
+// 	OrderStatusShipped    = "shipped"
+// 	OrderStatusDelivered  = "delivered"
+// 	OrderStatusCancelled  = "cancelled"
+// )
 
 type Cart struct {
 	gorm.Model
