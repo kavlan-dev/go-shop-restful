@@ -26,7 +26,7 @@ func NewUserService(storage userStorage, cartCreator cartCreator) *userService {
 	return &userService{storage: storage, cartCreator: cartCreator}
 }
 
-func (s userService) CreateUser(newUser *model.User) error {
+func (s *userService) CreateUser(newUser *model.User) error {
 	if err := newUser.Validate(); err != nil {
 		return err
 	}
@@ -48,11 +48,11 @@ func (s userService) CreateUser(newUser *model.User) error {
 	return nil
 }
 
-func (s userService) getUserByUsername(username string) (*model.User, error) {
+func (s *userService) getUserByUsername(username string) (*model.User, error) {
 	return s.storage.FindUserByUsername(username)
 }
 
-func (s userService) AuthenticateUser(username, password string) (*model.User, error) {
+func (s *userService) AuthenticateUser(username, password string) (*model.User, error) {
 	user, err := s.getUserByUsername(username)
 	if err != nil {
 		return nil, err
@@ -65,15 +65,15 @@ func (s userService) AuthenticateUser(username, password string) (*model.User, e
 	return user, nil
 }
 
-func (s userService) UserById(userId int) (*model.User, error) {
+func (s *userService) UserById(userId int) (*model.User, error) {
 	return s.storage.FindUserById(userId)
 }
 
-func (s userService) UpdateUser(userId int, updateUser *model.User) error {
+func (s *userService) UpdateUser(userId int, updateUser *model.User) error {
 	return s.storage.UpdateUser(userId, updateUser)
 }
 
-func (s userService) CreateAdminIfNotExists(adminUsername, adminEmail, adminPassword string) error {
+func (s *userService) CreateAdminIfNotExists(adminUsername, adminEmail, adminPassword string) error {
 	admin, _ := s.getUserByUsername(adminUsername)
 	if admin.ID != 0 {
 		return nil
@@ -93,7 +93,7 @@ func (s userService) CreateAdminIfNotExists(adminUsername, adminEmail, adminPass
 	return nil
 }
 
-func (s userService) PromoteUserToAdmin(userId int) error {
+func (s *userService) PromoteUserToAdmin(userId int) error {
 	user, err := s.UserById(userId)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (s userService) PromoteUserToAdmin(userId int) error {
 	return nil
 }
 
-func (s userService) DowngradeUserToCustomer(userId int) error {
+func (s *userService) DowngradeUserToCustomer(userId int) error {
 	user, err := s.UserById(userId)
 	if err != nil {
 		return err

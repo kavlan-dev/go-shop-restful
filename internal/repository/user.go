@@ -14,18 +14,18 @@ func NewUserRepository(db *gorm.DB) *userRepository {
 	return &userRepository{db: db}
 }
 
-func (s userRepository) CreateUser(newUser *model.User) error {
+func (s *userRepository) CreateUser(newUser *model.User) error {
 	return s.db.Create(&newUser).Error
 }
 
-func (s userRepository) FindUserByUsername(username string) (*model.User, error) {
+func (s *userRepository) FindUserByUsername(username string) (*model.User, error) {
 	var user model.User
 	err := s.db.Preload("Cart").Where("username = ?", username).First(&user).Error
 
 	return &user, err
 }
 
-func (s userRepository) FindUserById(userId int) (*model.User, error) {
+func (s *userRepository) FindUserById(userId int) (*model.User, error) {
 	var user model.User
 	err := s.db.Preload("Cart").First(&user, userId).Error
 	if err != nil {
@@ -35,7 +35,7 @@ func (s userRepository) FindUserById(userId int) (*model.User, error) {
 	return &user, nil
 }
 
-func (s userRepository) UpdateUser(userId int, updateUser *model.User) error {
+func (s *userRepository) UpdateUser(userId int, updateUser *model.User) error {
 	var user model.User
 	if err := s.db.Preload("Cart").First(&user, userId).Error; err != nil {
 		return err

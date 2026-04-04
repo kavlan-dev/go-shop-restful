@@ -29,7 +29,7 @@ func NewUserHandler(service userService, log *zap.SugaredLogger) *userHandler {
 	}
 }
 
-func (h userHandler) Register(c *gin.Context) {
+func (h *userHandler) Register(c *gin.Context) {
 	var req model.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса регистрации: %v", err)
@@ -59,7 +59,7 @@ func (h userHandler) Register(c *gin.Context) {
 	})
 }
 
-func (h userHandler) Login(c *gin.Context) {
+func (h *userHandler) Login(c *gin.Context) {
 	var req model.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле запроса логина: %v", err)
@@ -93,7 +93,7 @@ func (h userHandler) Login(c *gin.Context) {
 	})
 }
 
-func (h userHandler) PromoteToAdmin(c *gin.Context) {
+func (h *userHandler) PromoteToAdmin(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID пользователя: %v", err)
@@ -117,7 +117,7 @@ func (h userHandler) PromoteToAdmin(c *gin.Context) {
 	})
 }
 
-func (h userHandler) DowngradeToCustomer(c *gin.Context) {
+func (h *userHandler) DowngradeToCustomer(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID пользователя: %v", err)

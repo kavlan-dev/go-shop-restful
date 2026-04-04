@@ -32,7 +32,7 @@ func NewProductHandler(service productService, log *zap.SugaredLogger) *productH
 }
 
 // TODO Добавить фильтрацию и сортировку
-func (h productHandler) Products(c *gin.Context) {
+func (h *productHandler) Products(c *gin.Context) {
 	limitStr := c.Query("limit")
 	offsetStr := c.Query("offset")
 
@@ -84,7 +84,7 @@ func (h productHandler) Products(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-func (h productHandler) PostProduct(c *gin.Context) {
+func (h *productHandler) PostProduct(c *gin.Context) {
 	var req model.ProductCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Errorf("Ошибка в теле создания товара: %v", err)
@@ -114,7 +114,7 @@ func (h productHandler) PostProduct(c *gin.Context) {
 	c.JSON(http.StatusCreated, newProduct)
 }
 
-func (h productHandler) ProductById(c *gin.Context) {
+func (h *productHandler) ProductById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
@@ -144,7 +144,7 @@ func (h productHandler) ProductById(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
-func (h productHandler) ProductByTitle(c *gin.Context) {
+func (h *productHandler) ProductByTitle(c *gin.Context) {
 	title := c.Param("title")
 	if title == "" {
 		h.log.Error("Пустой заголовок товара в запросе")
@@ -174,7 +174,7 @@ func (h productHandler) ProductByTitle(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-func (h productHandler) PutProduct(c *gin.Context) {
+func (h *productHandler) PutProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)
@@ -219,7 +219,7 @@ func (h productHandler) PutProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, updateProduct)
 }
 
-func (h productHandler) DeleteProduct(c *gin.Context) {
+func (h *productHandler) DeleteProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		h.log.Errorf("Ошибка парсинга ID товара: %v", err)

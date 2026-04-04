@@ -28,7 +28,7 @@ func NewCartHandler(service cartService, log *zap.SugaredLogger) *cartHandler {
 	}
 }
 
-func (h cartHandler) Cart(c *gin.Context) {
+func (h *cartHandler) Cart(c *gin.Context) {
 	userId, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -59,7 +59,7 @@ func (h cartHandler) Cart(c *gin.Context) {
 	c.JSON(http.StatusOK, cart)
 }
 
-func (h cartHandler) AddToCart(c *gin.Context) {
+func (h *cartHandler) AddToCart(c *gin.Context) {
 	productId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)
@@ -103,7 +103,7 @@ func (h cartHandler) AddToCart(c *gin.Context) {
 	})
 }
 
-func (h cartHandler) ClearCart(c *gin.Context) {
+func (h *cartHandler) ClearCart(c *gin.Context) {
 	userId, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{

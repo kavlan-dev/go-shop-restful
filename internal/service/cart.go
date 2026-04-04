@@ -26,7 +26,7 @@ func NewCartService(storage cartStorage, userRepository userStorage, productRepo
 	return &cartService{storage: storage, userRepository: userRepository, productRepository: productRepository}
 }
 
-func (s cartService) CreateCart(user *model.User) error {
+func (s *cartService) CreateCart(user *model.User) error {
 	if user.Cart.UserID != 0 {
 		return nil
 	}
@@ -37,11 +37,11 @@ func (s cartService) CreateCart(user *model.User) error {
 	return nil
 }
 
-func (s cartService) Cart(userId int) (*model.Cart, error) {
+func (s *cartService) Cart(userId int) (*model.Cart, error) {
 	return s.storage.FindCart(userId)
 }
 
-func (s cartService) AddToCart(userId, productId int) error {
+func (s *cartService) AddToCart(userId, productId int) error {
 	user, err := s.userRepository.FindUserById(userId)
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (s cartService) AddToCart(userId, productId int) error {
 	return nil
 }
 
-func (s cartService) ClearCart(user_id int) error {
+func (s *cartService) ClearCart(user_id int) error {
 	cart, err := s.storage.FindCart(user_id)
 	if err != nil {
 		return err
