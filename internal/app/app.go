@@ -62,23 +62,25 @@ func Run() {
 		Handler: r,
 	}
 
+	go func() {
+		log.Println("Сервер запущен")
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Fatalln("Ошибка запуска сервера:", err)
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+	logger.Infoln("Остановка сервера...")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		<-sigCh
-		logger.Infoln("Остановка сервера...")
-		if err := srv.Shutdown(ctx); err != nil {
-			logger.Errorf("Ошибка graceful shutdown: %v", err)
-			return
-		}
-		logger.Infoln("Сервер успешно завершил работу")
-	}()
-
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Fatalln("Ошибка запуска сервера:", err)
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Errorf("Ошибка graceful shutdown: %v", err)
+		return
 	}
+
+	logger.Infoln("Сервер успешно завершил работу")
 }
