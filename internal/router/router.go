@@ -27,6 +27,7 @@ type userHandler interface {
 type cartHandler interface {
 	Cart(c *gin.Context)
 	AddToCart(c *gin.Context)
+	DeleteItem(c *gin.Context)
 	ClearCart(c *gin.Context)
 }
 
@@ -62,6 +63,7 @@ func NewRouter(cfg *config.Config, productHandler productHandler, userHandler us
 	cart := api.Group("/cart")
 	cart.GET("/", cartHandler.Cart)
 	cart.POST("/:id", cartHandler.AddToCart)
+	cart.DELETE("/:id", cartHandler.DeleteItem)
 	cart.DELETE("/", cartHandler.ClearCart)
 
 	adminUsers := admin.Group("/users")

@@ -32,6 +32,10 @@ func (s *cartRepository) FindCartItems(cart_id int) ([]model.CartItem, error) {
 	return cartItems, err
 }
 
+func (s *cartRepository) DeleteItem(cartItem *model.CartItem) error {
+	return s.db.Delete(&cartItem).Error
+}
+
 func (s *cartRepository) ClearCart(cartItems []model.CartItem) error {
 	return s.db.Delete(&cartItems).Error
 }

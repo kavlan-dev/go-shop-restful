@@ -89,7 +89,7 @@ function renderCart(cart) {
                 </td>
                 <td>${formatPrice(itemTotal)}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-danger remove-from-cart" data-item-id="${item.ID}">
+                    <button class="btn btn-sm btn-outline-danger remove-from-cart" data-product-id="${item.product_id}">
                         <i class="bi bi-trash"></i> Удалить
                     </button>
                 </td>
@@ -123,8 +123,8 @@ function renderCart(cart) {
   // Add event listeners
   document.querySelectorAll(".remove-from-cart").forEach((btn) => {
     btn.addEventListener("click", function () {
-      const itemId = this.getAttribute("data-item-id");
-      removeFromCart(itemId);
+      const productId = this.getAttribute("data-product-id");
+      removeFromCart(productId);
     });
   });
 
@@ -149,9 +149,9 @@ function renderCart(cart) {
 }
 
 // Remove item from cart
-async function removeFromCart(itemId) {
+async function removeFromCart(productId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
+    const response = await fetch(`${API_BASE_URL}/cart/${productId}`, {
       method: "DELETE",
       headers: getAuthHeader(),
     });

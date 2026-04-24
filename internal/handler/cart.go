@@ -13,6 +13,7 @@ import (
 type cartService interface {
 	Cart(user_id int) (*model.Cart, error)
 	AddToCart(user_id, productID int) error
+	DeleteItem(user_id, itemID int) error
 	ClearCart(user_id int) error
 }
 
@@ -101,6 +102,42 @@ func (h *cartHandler) AddToCart(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "товар успешно добавлен в корзину",
 	})
+}
+
+func (h *cartHandler) DeleteItem(c *gin.Context) {
+	itemId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "не авторизован",
+		})
+		return
+	}
+
+	userIdUint, ok := userId.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "внутренняя ошибка сервера",
+		})
+		return
+	}
+
+	if err := h.service.DeleteItem(int(userIdUint), itemId); err != nil {
+		h.log.Error("Ошибка при удалении товара из корзины:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "не удалось удалить товар из корзины",
+			"details": err,
+		})
+		return
+	}
+
+	h.log.Debug("Товар из корзины удалить")
+	c.JSON(http.StatusNoContent, nil)
 }
 
 func (h *cartHandler) ClearCart(c *gin.Context) {

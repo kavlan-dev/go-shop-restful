@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type userStorage interface {
+type userRepository interface {
 	CreateUser(newUser *model.User) error
 	FindUserByUsername(username string) (*model.User, error)
 	FindUserById(userId int) (*model.User, error)
@@ -18,11 +18,11 @@ type cartCreator interface {
 }
 
 type userService struct {
-	storage     userStorage
+	storage     userRepository
 	cartCreator cartCreator
 }
 
-func NewUserService(storage userStorage, cartCreator cartCreator) *userService {
+func NewUserService(storage userRepository, cartCreator cartCreator) *userService {
 	return &userService{storage: storage, cartCreator: cartCreator}
 }
 

@@ -2,7 +2,7 @@ package service
 
 import "go-shop-restful/internal/model"
 
-type productStorage interface {
+type productRepository interface {
 	FindProducts(limit, offset int) ([]model.Product, error)
 	CreateProduct(newProduct *model.Product) error
 	FindProductById(id int) (*model.Product, error)
@@ -12,10 +12,10 @@ type productStorage interface {
 }
 
 type productService struct {
-	storage productStorage
+	storage productRepository
 }
 
-func NewProductService(storage productStorage) *productService {
+func NewProductService(storage productRepository) *productService {
 	return &productService{storage: storage}
 }
 
